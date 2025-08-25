@@ -59,9 +59,10 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		].forEach((row) => row.scale.set(0.67));
 
 		[player.deck, enemy.deck].forEach((deck) => deck.scale.set(0.95));
-		[player.hand, enemy.hand].forEach((hand) => hand.scale.set(0.8));
 
-		weather.scale.set(0.8);
+		[weather, player.hand, enemy.hand, player.discard, enemy.discard].forEach(
+			(hand) => hand.scale.set(0.8)
+		);
 
 		player.hand.setPosition(gameAreaCenterX, boardHeight - 235);
 		player.infantry.setPosition(gameAreaCenterX, 658);
@@ -69,7 +70,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		player.siege.setPosition(gameAreaCenterX, 1015);
 		player.deck.setPosition(boardWidth - 105, boardHeight - 265);
 
-		player.discard.setPosition(2129, 1208);
+		player.discard.setPosition(2132, 1200);
 
 		enemy.hand.setPosition(gameAreaCenterX, -110);
 		enemy.infantry.setPosition(gameAreaCenterX, 458);
@@ -111,11 +112,15 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		// Player hand cards
 		const playerHandCards: CardData[] = [];
 		for (let i = 0; i < 7; i++) {
+			const cardTypes = ["archer", "knight", "steppe_lancer"];
+			const cardType = cardTypes[i % cardTypes.length];
+			const cardName =
+				cardType.charAt(0).toUpperCase() + cardType.slice(1).replace("_", " ");
 			playerHandCards.push({
-				name: `Britons Knight ${6 + i}`,
+				name: `Britons ${cardName} ${6 + i}`,
 				faction: Faction.BRITONS,
 				score: 6 + i,
-				faceTexture: "knight",
+				faceTexture: cardType,
 			});
 		}
 		this._cardContainers.player.hand.addCardsBatch(playerHandCards);
@@ -123,11 +128,15 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		// Enemy hand cards
 		const enemyHandCards: CardData[] = [];
 		for (let i = 0; i < 6; i++) {
+			const cardTypes = ["archer", "knight", "steppe_lancer"];
+			const cardType = cardTypes[i % cardTypes.length];
+			const cardName =
+				cardType.charAt(0).toUpperCase() + cardType.slice(1).replace("_", " ");
 			enemyHandCards.push({
-				name: `Franks Knight ${5 + i}`,
+				name: `Franks ${cardName} ${5 + i}`,
 				faction: Faction.FRANKS,
 				score: 5 + i,
-				faceTexture: "knight",
+				faceTexture: cardType,
 			});
 		}
 		this._cardContainers.enemy.hand.addCardsBatch(enemyHandCards);
@@ -160,10 +169,10 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		const playerRangedCards: CardData[] = [];
 		for (let i = 0; i < 3; i++) {
 			playerRangedCards.push({
-				name: `Britons Ranged ${5 + i}`,
+				name: `Britons Archer ${5 + i}`,
 				faction: Faction.BRITONS,
 				score: 5 + i,
-				faceTexture: "knight",
+				faceTexture: "archer",
 			});
 		}
 		this._cardContainers.player.ranged.addCardsBatch(playerRangedCards);
@@ -172,10 +181,10 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		const enemyRangedCards: CardData[] = [];
 		for (let i = 0; i < 3; i++) {
 			enemyRangedCards.push({
-				name: `Franks Ranged ${4 + i}`,
+				name: `Franks Archer ${4 + i}`,
 				faction: Faction.FRANKS,
 				score: 4 + i,
-				faceTexture: "knight",
+				faceTexture: "archer",
 			});
 		}
 		this._cardContainers.enemy.ranged.addCardsBatch(enemyRangedCards);
@@ -185,7 +194,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			name: "Britons Siege Engine",
 			faction: Faction.BRITONS,
 			score: 9,
-			faceTexture: "knight",
+			faceTexture: "steppe_lancer",
 		};
 		this._cardContainers.player.siege.addCard(playerSiegeCard);
 
@@ -193,7 +202,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			name: "Franks Siege Engine",
 			faction: Faction.FRANKS,
 			score: 8,
-			faceTexture: "knight",
+			faceTexture: "steppe_lancer",
 		};
 		this._cardContainers.enemy.siege.addCard(enemySiegeCard);
 
@@ -214,27 +223,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		};
 		this._cardContainers.enemy.discard.addCard(enemyDiscardCard);
 
-		// Create deck cards for batch addition
-		const playerDeckCards: CardData[] = [];
-		const enemyDeckCards: CardData[] = [];
-		for (let i = 0; i < 15; i++) {
-			playerDeckCards.push({
-				name: "Deck Card",
-				faction: Faction.BRITONS,
-				score: 1,
-				faceTexture: "knight",
-			});
-
-			enemyDeckCards.push({
-				name: "Deck Card",
-				faction: Faction.FRANKS,
-				score: 1,
-				faceTexture: "knight",
-			});
-		}
-		this._cardContainers.player.deck.addCardsBatch(playerDeckCards);
-		this._cardContainers.enemy.deck.addCardsBatch(enemyDeckCards);
-
 		// Create weather cards for batch addition
 		const weatherCards: CardData[] = [];
 		for (let i = 0; i < 2; i++) {
@@ -242,7 +230,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 				name: `Weather Card ${i + 1}`,
 				faction: Faction.BRITONS,
 				score: 0,
-				faceTexture: "knight",
+				faceTexture: "archer",
 			});
 		}
 		this._cardContainers.weather.addCardsBatch(weatherCards);
@@ -300,14 +288,20 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 	private addRandomCardToPlayer(): void {
 		const factions = [Faction.BRITONS, Faction.FRANKS];
+		const cardTypes = ["archer", "knight", "steppe_lancer"];
 		const randomFaction = factions[Math.floor(Math.random() * factions.length)];
+		const randomCardType =
+			cardTypes[Math.floor(Math.random() * cardTypes.length)];
 		const randomScore = Math.floor(Math.random() * 10) + 1;
+		const cardName =
+			randomCardType.charAt(0).toUpperCase() +
+			randomCardType.slice(1).replace("_", " ");
 
 		const cardData: CardData = {
-			name: `${randomFaction} Knight`,
+			name: `${randomFaction} ${cardName}`,
 			faction: randomFaction,
 			score: randomScore,
-			faceTexture: "knight",
+			faceTexture: randomCardType,
 		};
 
 		this._cardContainers.player.hand.addCard(cardData);

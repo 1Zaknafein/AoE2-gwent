@@ -42,10 +42,8 @@ export class CardInteractionManager {
 
 		// Keep other containers non-interactive for container clicks
 		const nonPlayableContainers = [
-			player.deck,
 			player.discard,
 			enemy.hand,
-			enemy.deck,
 			enemy.discard,
 			this._cardContainers.weather,
 		];

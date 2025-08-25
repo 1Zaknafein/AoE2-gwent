@@ -1,4 +1,5 @@
 import { CardContainer } from "./CardContainer";
+import { Deck } from "../deck";
 
 export interface PlayerContainers {
 	hand: CardContainer;
@@ -6,7 +7,7 @@ export interface PlayerContainers {
 	ranged: CardContainer;
 	siege: CardContainer;
 	discard: CardContainer;
-	deck: CardContainer;
+	deck: Deck;
 }
 
 export class CardContainerManager {
@@ -21,7 +22,7 @@ export class CardContainerManager {
 			ranged: new CardContainer(1300, "player_ranged"),
 			siege: new CardContainer(1300, "player_siege"),
 			discard: new CardContainer(120, "player_discard"),
-			deck: new CardContainer(80, "player_deck"),
+			deck: new Deck(),
 		};
 
 		this.enemy = {
@@ -30,10 +31,10 @@ export class CardContainerManager {
 			ranged: new CardContainer(1300, "enemy_ranged"),
 			siege: new CardContainer(1300, "enemy_siege"),
 			discard: new CardContainer(120, "enemy_discard"),
-			deck: new CardContainer(80, "enemy_deck"),
+			deck: new Deck(),
 		};
 
-		this.weather = new CardContainer(100, "weather");
+		this.weather = new CardContainer(490, "weather");
 	}
 
 	public getAllContainers(): CardContainer[] {
@@ -43,15 +44,17 @@ export class CardContainerManager {
 			this.player.ranged,
 			this.player.siege,
 			this.player.discard,
-			this.player.deck,
 			this.enemy.hand,
 			this.enemy.infantry,
 			this.enemy.ranged,
 			this.enemy.siege,
 			this.enemy.discard,
-			this.enemy.deck,
 			this.weather,
 		];
+	}
+
+	public getAllDecks(): Deck[] {
+		return [this.player.deck, this.enemy.deck];
 	}
 
 	public getPlayerContainers(): CardContainer[] {
@@ -61,7 +64,6 @@ export class CardContainerManager {
 			this.player.ranged,
 			this.player.siege,
 			this.player.discard,
-			this.player.deck,
 		];
 	}
 
@@ -72,7 +74,6 @@ export class CardContainerManager {
 			this.enemy.ranged,
 			this.enemy.siege,
 			this.enemy.discard,
-			this.enemy.deck,
 		];
 	}
 }
