@@ -1,8 +1,9 @@
 import { PixiContainer, PixiSprite } from "../../plugins/engine";
 import { Manager, SceneInterface } from "../../entities/manager";
-import { CardData, CardContainerManager, CardType } from "../../entities/card";
+import { CardContainerManager } from "../../entities/card";
 import { Button } from "../components";
 import { CardInteractionManager } from "../managers";
+import { CardDatabase } from "../../shared/database";
 import { Sprite } from "pixi.js";
 
 export class GameScene extends PixiContainer implements SceneInterface {
@@ -13,10 +14,12 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	private _cardContainers: CardContainerManager;
 	private _cardInteractionManager: CardInteractionManager;
 
-	private _addButton!: Button;
-	private _removeButton!: Button;
-	private _transferButton!: Button;
 	private _multiTransferButton!: Button;
+	private _drawPlayerCardButton!: Button;
+	private _drawEnemyCardButton!: Button;
+
+	private _playerDeckIds: number[] = [];
+	private _enemyDeckIds: number[] = [];
 
 	constructor() {
 		super();
@@ -106,177 +109,32 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		);
 	}
 
+	/**
+	 * Debug function for adding sample cards to player and enemy hands.
+	 * TODO REMOVE ONCE GAME LOGIC IS IN PLACE.
+	 */
 	private addSampleCards(): void {
-		// Create card arrays for batch addition
+		// Generate random decks for both players
+		this._playerDeckIds = CardDatabase.generateRandomDeck(15);
+		this._enemyDeckIds = CardDatabase.generateRandomDeck(15);
 
-		// Player hand cards
-		const playerHandCards: CardData[] = [];
-		for (let i = 0; i < 7; i++) {
-			const cardTypes = ["archer", "knight", "mangonel"];
-			const cardTypeEnums = [CardType.RANGED, CardType.MELEE, CardType.SIEGE];
-			const cardIndex = i % cardTypes.length;
-			const cardType = cardTypes[cardIndex];
-			const cardTypeEnum = cardTypeEnums[cardIndex];
-			const cardName = cardType.charAt(0).toUpperCase() + cardType.slice(1);
-			playerHandCards.push({
-				name: `Britons ${cardName} ${6 + i}`,
-				score: 6 + i,
-				faceTexture: cardType,
-				type: cardTypeEnum,
-			});
-		}
+		console.log("Player deck card IDs:", this._playerDeckIds);
+		console.log("Enemy deck card IDs:", this._enemyDeckIds);
+
+		// Add initial cards to player hand from their deck
+		const initialPlayerHandIds = this._playerDeckIds.splice(0, 5); // Remove first 5 cards from deck
+		const playerHandCards =
+			CardDatabase.generateCardsFromIds(initialPlayerHandIds);
 		this._cardContainers.player.hand.addCardsBatch(playerHandCards);
 
-		// Enemy hand cards
-		const enemyHandCards: CardData[] = [];
-		for (let i = 0; i < 6; i++) {
-			const cardTypes = ["archer", "knight", "mangonel"];
-			const cardTypeEnums = [CardType.RANGED, CardType.MELEE, CardType.SIEGE];
-			const cardIndex = i % cardTypes.length;
-			const cardType = cardTypes[cardIndex];
-			const cardTypeEnum = cardTypeEnums[cardIndex];
-			const cardName = cardType.charAt(0).toUpperCase() + cardType.slice(1);
-			enemyHandCards.push({
-				name: `Franks ${cardName} ${5 + i}`,
-				score: 5 + i,
-				faceTexture: cardType,
-				type: cardTypeEnum,
-			});
-		}
+		// Add initial cards to enemy hand from their deck
+		const initialEnemyHandIds = this._enemyDeckIds.splice(0, 5); // Remove first 5 cards from deck
+		const enemyHandCards =
+			CardDatabase.generateCardsFromIds(initialEnemyHandIds);
 		this._cardContainers.enemy.hand.addCardsBatch(enemyHandCards);
-
-		// Player melee row cards
-		const playerMeleeCards: CardData[] = [];
-		for (let i = 0; i < 2; i++) {
-			playerMeleeCards.push({
-				name: `Britons Knight ${8 + i}`,
-				score: 8 + i,
-				faceTexture: "knight",
-				type: CardType.MELEE,
-			});
-		}
-		this._cardContainers.player.melee.addCardsBatch(playerMeleeCards);
-
-		// Enemy melee row cards
-		const enemyMeleeCards: CardData[] = [];
-		for (let i = 0; i < 2; i++) {
-			enemyMeleeCards.push({
-				name: `Franks Knight ${7 + i}`,
-				score: 7 + i,
-				faceTexture: "knight",
-				type: CardType.MELEE,
-			});
-		}
-		this._cardContainers.enemy.melee.addCardsBatch(enemyMeleeCards);
-
-		// Player ranged row cards
-		const playerRangedCards: CardData[] = [];
-		for (let i = 0; i < 3; i++) {
-			playerRangedCards.push({
-				name: `Britons Archer ${5 + i}`,
-				score: 5 + i,
-				faceTexture: "archer",
-				type: CardType.RANGED,
-			});
-		}
-		this._cardContainers.player.ranged.addCardsBatch(playerRangedCards);
-
-		// Enemy ranged row cards
-		const enemyRangedCards: CardData[] = [];
-		for (let i = 0; i < 3; i++) {
-			enemyRangedCards.push({
-				name: `Franks Archer ${4 + i}`,
-				score: 4 + i,
-				faceTexture: "archer",
-				type: CardType.RANGED,
-			});
-		}
-		this._cardContainers.enemy.ranged.addCardsBatch(enemyRangedCards);
-
-		// Add single cards to siege rows
-		const playerSiegeCard: CardData = {
-			name: "Britons Mangonel",
-			score: 9,
-			faceTexture: "mangonel",
-			type: CardType.SIEGE,
-		};
-		this._cardContainers.player.siege.addCard(playerSiegeCard);
-
-		const enemySiegeCard: CardData = {
-			name: "Franks Mangonel",
-			score: 8,
-			faceTexture: "mangonel",
-			type: CardType.SIEGE,
-		};
-		this._cardContainers.enemy.siege.addCard(enemySiegeCard);
-
-		// Add cards to discard piles
-		const playerDiscardCard: CardData = {
-			name: "Discarded Britons Knight",
-			score: 3,
-			faceTexture: "knight",
-			type: CardType.MELEE,
-		};
-		this._cardContainers.player.discard.addCard(playerDiscardCard);
-
-		const enemyDiscardCard: CardData = {
-			name: "Discarded Franks Knight",
-			score: 2,
-			faceTexture: "knight",
-			type: CardType.MELEE,
-		};
-		this._cardContainers.enemy.discard.addCard(enemyDiscardCard);
-
-		// Create weather cards for batch addition
-		const weatherCards: CardData[] = [];
-		for (let i = 0; i < 2; i++) {
-			weatherCards.push({
-				name: `Weather Card ${i + 1}`,
-				score: 0,
-				faceTexture: "archer",
-				type: CardType.RANGED,
-			});
-		}
-		this._cardContainers.weather.addCardsBatch(weatherCards);
 	}
 
 	private createTestUI(): void {
-		this._addButton = new Button(
-			"Add Card",
-			() => {
-				this.addRandomCardToPlayer();
-			},
-			100,
-			35
-		);
-		this._addButton.x = 50;
-		this._addButton.y = 50;
-		this.addChild(this._addButton);
-
-		this._removeButton = new Button(
-			"Remove Card",
-			() => {
-				this._cardContainers.player.hand.removeCard();
-			},
-			100,
-			35
-		);
-		this._removeButton.x = 160;
-		this._removeButton.y = 50;
-		this.addChild(this._removeButton);
-
-		this._transferButton = new Button(
-			"Transfer Card",
-			() => {
-				this.transferCard();
-			},
-			120,
-			35
-		);
-		this._transferButton.x = 270;
-		this._transferButton.y = 50;
-		this.addChild(this._transferButton);
-
 		this._multiTransferButton = new Button(
 			"Transfer 3",
 			() => {
@@ -285,38 +143,76 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			100,
 			35
 		);
-		this._multiTransferButton.x = 400;
+		this._multiTransferButton.x = 350;
 		this._multiTransferButton.y = 50;
 		this.addChild(this._multiTransferButton);
+
+		this._drawPlayerCardButton = new Button(
+			"Draw Player Card",
+			() => {
+				this.drawPlayerCard();
+			},
+			140,
+			35
+		);
+		this._drawPlayerCardButton.x = 50;
+		this._drawPlayerCardButton.y = 50;
+		this.addChild(this._drawPlayerCardButton);
+
+		this._drawEnemyCardButton = new Button(
+			"Draw Enemy Card",
+			() => {
+				this.drawEnemyCard();
+			},
+			140,
+			35
+		);
+		this._drawEnemyCardButton.x = 200;
+		this._drawEnemyCardButton.y = 50;
+		this.addChild(this._drawEnemyCardButton);
 	}
 
-	private addRandomCardToPlayer(): void {
-		const cardTypes = ["archer", "knight", "mangonel"];
-		const cardTypeEnums = [CardType.RANGED, CardType.MELEE, CardType.SIEGE];
-		const randomTypeIndex = Math.floor(Math.random() * cardTypes.length);
-		const randomCardType = cardTypes[randomTypeIndex];
-		const randomCardTypeEnum = cardTypeEnums[randomTypeIndex];
-		const randomScore = Math.floor(Math.random() * 10) + 1;
-		const cardName =
-			randomCardType.charAt(0).toUpperCase() + randomCardType.slice(1);
+	private async drawPlayerCard(): Promise<void> {
+		if (this._playerDeckIds.length === 0) {
+			return;
+		}
 
-		const cardData: CardData = {
-			name: cardName,
-			score: randomScore,
-			faceTexture: randomCardType,
-			type: randomCardTypeEnum,
-		};
+		const cardId = this._playerDeckIds.shift();
 
-		this._cardContainers.player.hand.addCard(cardData);
+		if (cardId !== undefined) {
+			const cardData = CardDatabase.getCardById(cardId);
+			if (cardData) {
+				const deckPosition =
+					this._cardContainers.player.deck.getTopCardGlobalPosition();
+
+				await this._cardContainers.player.hand.addCardWithAnimation(
+					cardData,
+					deckPosition,
+					0.6
+				);
+			}
+		}
 	}
 
-	private async transferCard(): Promise<void> {
-		if (this._cardContainers.player.hand.cardCount > 0) {
-			// Transfer the first card from player hand to player melee row
-			await this._cardContainers.player.hand.transferCardTo(
-				0,
-				this._cardContainers.player.melee
-			);
+	private async drawEnemyCard(): Promise<void> {
+		if (this._enemyDeckIds.length === 0) {
+			return;
+		}
+
+		const cardId = this._enemyDeckIds.shift();
+
+		if (cardId !== undefined) {
+			const cardData = CardDatabase.getCardById(cardId);
+			if (cardData) {
+				const deckPosition =
+					this._cardContainers.enemy.deck.getTopCardGlobalPosition();
+
+				await this._cardContainers.enemy.hand.addCardWithAnimation(
+					cardData,
+					deckPosition,
+					0.6
+				);
+			}
 		}
 	}
 
@@ -333,7 +229,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			}
 
 			if (this._cardContainers.player.hand.cardCount > 0) {
-				// Always transfer index 0 since cards shift when removed
 				this._cardContainers.player.hand.transferCardTo(
 					0,
 					this._cardContainers.player.ranged

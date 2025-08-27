@@ -152,6 +152,129 @@ export class CardContainer extends PixiContainer {
 	}
 
 	/**
+	 * Add a card with animation from a specific global position.
+	 * @param cardData Card data to add.
+	 * @param fromGlobalPosition Starting position for the animation (global coordinates).
+	 * @param animationDuration Duration of the animation in seconds.
+	 */
+	public async addCardWithAnimation(
+		cardData: CardData,
+		fromGlobalPosition: { x: number; y: number },
+		animationDuration: number = 0.5
+	): Promise<void> {
+		const card = new Card(cardData);
+
+		// Add card to this container first but don't position it yet
+		this._cards.push(card);
+		this.addChild(card);
+
+		// Apply current interactivity settings to the new card
+		card.eventMode = this._areCardsInteractive ? "static" : "none";
+		card.cursor = this._areCardsInteractive ? "pointer" : "default";
+
+		// Calculate the target position in this container's local coordinates
+		// Use the same positioning logic as updateCardPositions()
+		const cardCount = this._cards.length;
+		let cardWidth = 100; // default
+		if (this._cards.length > 1) {
+			cardWidth = this._cards[0].width;
+		} else {
+			cardWidth = card.width;
+		}
+
+		const totalWidthNeeded =
+			cardCount * cardWidth + (cardCount - 1) * this._cardSpacing;
+
+		let actualSpacing = this._cardSpacing;
+		let overlap = 0;
+
+		// If cards exceed max width, calculate overlap (same as updateCardPositions)
+		if (totalWidthNeeded > this._maxWidth) {
+			const availableSpaceForSpacing = this._maxWidth - cardCount * cardWidth;
+
+			if (availableSpaceForSpacing >= 0) {
+				actualSpacing = availableSpaceForSpacing / (cardCount - 1);
+			} else {
+				actualSpacing = 0;
+				overlap = Math.abs(availableSpaceForSpacing) / (cardCount - 1);
+			}
+		}
+
+		const totalWidth =
+			overlap > 0
+				? this._maxWidth
+				: cardCount * cardWidth + (cardCount - 1) * actualSpacing;
+
+		const startX = -totalWidth / 2 + cardWidth / 2;
+
+		// Convert the global start position to this container's local coordinates
+		const localStartPos = this.toLocal(fromGlobalPosition);
+
+		// Set the card to start at the deck position (in local coordinates)
+		card.position.set(localStartPos.x, localStartPos.y);
+
+		// Emit event for new card added
+		this.emit("cardAdded", { card, container: this });
+
+		// Calculate positions for ALL cards (new layout with the added card)
+		const cardPositions: { card: Card; targetX: number; targetY: number }[] =
+			[];
+
+		this._cards.forEach((cardInContainer, index) => {
+			let targetX: number;
+			if (overlap > 0) {
+				targetX = startX + index * (cardWidth - overlap);
+			} else {
+				targetX = startX + index * (cardWidth + actualSpacing);
+			}
+
+			cardPositions.push({
+				card: cardInContainer,
+				targetX: targetX,
+				targetY: 0,
+			});
+		});
+
+		// Animate ALL cards to their new positions
+		const animationPromises: Promise<void>[] = [];
+
+		cardPositions.forEach(({ card: cardToAnimate, targetX, targetY }) => {
+			// Check if card needs to move
+			const needsAnimation =
+				Math.abs(cardToAnimate.x - targetX) > 1 ||
+				Math.abs(cardToAnimate.y - targetY) > 1;
+
+			if (needsAnimation) {
+				const promise = new Promise<void>((resolve) => {
+					const tween = gsap.to(cardToAnimate, {
+						x: targetX,
+						y: targetY,
+						duration: animationDuration,
+						ease: "power2.out",
+						onComplete: () => {
+							resolve();
+						},
+					});
+
+					this._activeTransfers.add(tween);
+					tween.then(() => {
+						this._activeTransfers.delete(tween);
+					});
+				});
+				animationPromises.push(promise);
+			} else {
+				// Card doesn't need animation, just set position
+				cardToAnimate.position.set(targetX, targetY);
+			}
+		});
+
+		// Wait for all animations to complete
+		return Promise.all(animationPromises).then(() => {
+			// All animations complete
+		});
+	}
+
+	/**
 	 * Add multiple cards to the container in a batch, updating positions only once.
 	 * This has no animations, used on initial setup.
 	 * @param cardData Card data to add.
@@ -256,11 +379,6 @@ export class CardContainer extends PixiContainer {
 		const targetScale = targetContainer.scale.x;
 
 		const baseCardScale = 1;
-		const visualSourceScale = baseCardScale * sourceScale;
-		const sceneScale = visualSourceScale;
-
-		const cardLocalPos = { x: cardToTransfer.x, y: cardToTransfer.y };
-		const cardGlobalPos = this.toGlobal(cardLocalPos);
 
 		// Calculate where this card will be positioned in the target container
 		const targetCardIndex = targetContainer._cards.length; // This will be the new card's index
@@ -271,29 +389,22 @@ export class CardContainer extends PixiContainer {
 
 		const targetFinalGlobal = targetContainer.toGlobal(targetFinalPos);
 
+		// Convert target global position to this container's local coordinates
+		const targetLocalInSource = this.toLocal(targetFinalGlobal);
+
+		// Remove card from source container's array but keep it as a child during animation
 		this._cards.splice(cardIndex, 1);
-		this.removeChild(cardToTransfer);
-
-		const scene = this.parent!;
-		scene.addChild(cardToTransfer);
-
-		const startPosInScene = scene.toLocal(cardGlobalPos);
-		const endPosInScene = scene.toLocal(targetFinalGlobal);
-
-		cardToTransfer.x = startPosInScene.x;
-		cardToTransfer.y = startPosInScene.y;
-
-		cardToTransfer.scale.set(sceneScale);
 
 		return new Promise<void>((resolve) => {
+			// Calculate target scale relative to this container
+			const targetVisualScale = (baseCardScale * targetScale) / sourceScale;
+
 			const positionTween = gsap.to(cardToTransfer, {
-				x: endPosInScene.x,
-				y: endPosInScene.y,
+				x: targetLocalInSource.x,
+				y: targetLocalInSource.y,
 				duration: 0.4,
 				ease: "power2.inOut",
 			});
-
-			const targetVisualScale = baseCardScale * targetScale;
 
 			const scaleTween = gsap.to(cardToTransfer.scale, {
 				x: targetVisualScale,
@@ -301,7 +412,8 @@ export class CardContainer extends PixiContainer {
 				duration: 0.4,
 				ease: "power2.inOut",
 				onComplete: () => {
-					scene.removeChild(cardToTransfer);
+					// Only now remove from source and add to target
+					this.removeChild(cardToTransfer);
 
 					// Calculate the final position where this card should be
 					const finalCardIndex = targetContainer._cards.length;
