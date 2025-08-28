@@ -397,6 +397,10 @@ export class CardContainer extends PixiContainer {
 		// Remove card from source container's array but keep it as a child during animation
 		this._cards.splice(cardIndex, 1);
 
+		// Disable card interactivity during animation to prevent hover effects
+		cardToTransfer.eventMode = "none";
+		cardToTransfer.cursor = "default";
+
 		this.emit("cardRemoved", { card: cardToTransfer, container: this });
 
 		return new Promise<void>((resolve) => {
@@ -433,6 +437,14 @@ export class CardContainer extends PixiContainer {
 
 					targetContainer._cards.push(cardToTransfer);
 					targetContainer.addChild(cardToTransfer);
+
+					// Re-enable card interactivity based on target container settings
+					cardToTransfer.eventMode = targetContainer._areCardsInteractive
+						? "static"
+						: "none";
+					cardToTransfer.cursor = targetContainer._areCardsInteractive
+						? "pointer"
+						: "default";
 
 					// Emit event for card added to target container
 					targetContainer.emit("cardAdded", {
