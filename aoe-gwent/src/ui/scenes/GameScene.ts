@@ -1,7 +1,7 @@
 import { PixiContainer, PixiSprite } from "../../plugins/engine";
 import { Manager, SceneInterface } from "../../entities/manager";
 import { CardContainerManager } from "../../entities/card";
-import { Button } from "../components";
+import { Button, ScoreDisplay } from "../components";
 import { CardInteractionManager } from "../managers";
 import { CardDatabase } from "../../shared/database";
 import { Sprite } from "pixi.js";
@@ -20,6 +20,9 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 	private _playerDeckIds: number[] = [];
 	private _enemyDeckIds: number[] = [];
+
+	// Score display system
+	private _scoreDisplay!: ScoreDisplay;
 
 	constructor() {
 		super();
@@ -40,6 +43,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		);
 
 		this.createCardContainers();
+		this.createScoreDisplaySystem();
 		this.createTestUI();
 
 		this.resizeAndCenter(Manager.width, Manager.height);
@@ -59,7 +63,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			enemy.melee,
 			enemy.ranged,
 			enemy.siege,
-		].forEach((row) => row.scale.set(0.67));
+		].forEach((row) => row.scale.set(0.7));
 
 		[player.deck, enemy.deck].forEach((deck) => deck.scale.set(0.95));
 
@@ -68,7 +72,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		);
 
 		player.hand.setPosition(gameAreaCenterX, boardHeight - 235);
-		player.melee.setPosition(gameAreaCenterX, 658);
+		player.melee.setPosition(gameAreaCenterX, 660);
 		player.ranged.setPosition(gameAreaCenterX, 835);
 		player.siege.setPosition(gameAreaCenterX, 1015);
 		player.deck.setPosition(boardWidth - 105, boardHeight - 265);
@@ -132,6 +136,15 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		const enemyHandCards =
 			CardDatabase.generateCardsFromIds(initialEnemyHandIds);
 		this._cardContainers.enemy.hand.addCardsBatch(enemyHandCards);
+	}
+
+	private createScoreDisplaySystem(): void {
+		this._scoreDisplay = new ScoreDisplay();
+		this._gameBoard.addChild(this._scoreDisplay);
+
+		// Set up automatic score updates
+		const { player, enemy } = this._cardContainers;
+		this._scoreDisplay.setupScoreEventListeners(player, enemy);
 	}
 
 	private createTestUI(): void {

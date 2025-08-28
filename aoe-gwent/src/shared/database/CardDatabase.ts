@@ -18,9 +18,9 @@ export class CardDatabase {
 		[
 			2,
 			{
-				name: "Archer",
+				name: "Crossbowman",
 				score: 3,
-				faceTexture: "archer",
+				faceTexture: "crossbowman",
 				type: CardType.RANGED,
 			},
 		],

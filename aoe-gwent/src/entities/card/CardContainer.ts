@@ -305,6 +305,8 @@ export class CardContainer extends PixiContainer {
 		this._cards.splice(cardIndex, 1);
 		this.removeChild(cardToRemove);
 
+		this.emit("cardRemoved", { card: cardToRemove, container: this });
+
 		this.updateCardPositions();
 	}
 
@@ -395,6 +397,8 @@ export class CardContainer extends PixiContainer {
 		// Remove card from source container's array but keep it as a child during animation
 		this._cards.splice(cardIndex, 1);
 
+		this.emit("cardRemoved", { card: cardToTransfer, container: this });
+
 		return new Promise<void>((resolve) => {
 			// Calculate target scale relative to this container
 			const targetVisualScale = (baseCardScale * targetScale) / sourceScale;
@@ -429,6 +433,12 @@ export class CardContainer extends PixiContainer {
 
 					targetContainer._cards.push(cardToTransfer);
 					targetContainer.addChild(cardToTransfer);
+
+					// Emit event for card added to target container
+					targetContainer.emit("cardAdded", {
+						card: cardToTransfer,
+						container: targetContainer,
+					});
 
 					// Remove the animations from active transfers
 					this._activeTransfers.delete(positionTween);
