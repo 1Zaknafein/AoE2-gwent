@@ -16,6 +16,7 @@ export const options: LoaderOptions = {
 					card_back: "./cards/card_back.png",
 					crossbowman: "./cards/card_faces/crossbowman.png",
 					knight: "./cards/card_faces/knight.png",
+					light_cavalry: "./cards/card_faces/light_cavalry.png",
 					mangonel: "./cards/card_faces/mangonel.png",
 					icon_melee: "./cards/icon_melee.png",
 					icon_ranged: "./cards/icon_ranged.png",

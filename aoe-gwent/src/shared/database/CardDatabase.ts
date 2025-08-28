@@ -33,6 +33,15 @@ export class CardDatabase {
 				type: CardType.SIEGE,
 			},
 		],
+		[
+			4,
+			{
+				name: "Light Cavalry",
+				score: 3,
+				faceTexture: "light_cavalry",
+				type: CardType.MELEE,
+			},
+		],
 	]);
 
 	/**
