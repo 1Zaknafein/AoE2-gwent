@@ -9,7 +9,7 @@ export class CardContainer extends PixiContainer {
 	private _cardSpacing: number = 5;
 	private _isAnimating: boolean = false;
 	private _activeTransfers: Set<GSAPTween> = new Set();
-	private _debugRect: Graphics | null = null;
+	private _boundsRect: Graphics | null = null;
 	private _isContainerInteractive: boolean = false;
 	private _areCardsInteractive: boolean = true;
 	private _containerType: CardType | null = null;
@@ -26,7 +26,7 @@ export class CardContainer extends PixiContainer {
 		this.label = label;
 		this._containerType = containerType || null;
 
-		this.createDebugRect();
+		this.createBoundsRect();
 	}
 
 	public get cardCount(): number {
@@ -319,25 +319,22 @@ export class CardContainer extends PixiContainer {
 	public setPosition(x: number, y: number): void {
 		this.x = x;
 		this.y = y;
-		this.updateDebugRect();
+		this.updateBoundsRect();
 	}
 
-	private createDebugRect(): void {
-		this._debugRect = new Graphics();
-		this._debugRect.alpha = 0.2;
-		this.addChild(this._debugRect);
-		this.updateDebugRect();
+	private createBoundsRect(): void {
+		this._boundsRect = new Graphics();
+		this._boundsRect.alpha = 0;
+		this.addChild(this._boundsRect);
+		this.updateBoundsRect();
 	}
 
-	private updateDebugRect(): void {
-		if (!this._debugRect) return;
+	private updateBoundsRect(): void {
+		if (!this._boundsRect) return;
 
-		this._debugRect.clear();
-		this._debugRect.rect(-this._maxWidth / 2, -110, this._maxWidth, 230);
-
-		// Use different colors based on interactivity
-		const color = this._isContainerInteractive ? 0x00ff00 : 0x666666;
-		this._debugRect.fill({ color });
+		this._boundsRect.clear();
+		this._boundsRect.rect(-this._maxWidth / 2, -110, this._maxWidth, 230);
+		this._boundsRect.fill({});
 	}
 
 	public setContainerInteractive(interactive: boolean): void {
@@ -350,8 +347,6 @@ export class CardContainer extends PixiContainer {
 		} else {
 			this.off("pointerdown", this.onContainerClick);
 		}
-
-		this.updateDebugRect();
 	}
 
 	public setCardsInteractive(interactive: boolean): void {
