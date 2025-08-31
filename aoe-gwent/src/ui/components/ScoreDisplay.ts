@@ -3,12 +3,9 @@ import { CardContainer } from "../../entities/card";
 import { Text, TextStyle } from "pixi.js";
 
 export class ScoreDisplay extends PixiContainer {
-	// Cached text styles
 	private _scoreTextStyle: TextStyle;
 
 	// Text elements
-	private _playerNameText: Text;
-	private _enemyNameText: Text;
 	private _playerMeleeScoreText: Text;
 	private _playerRangedScoreText: Text;
 	private _playerSiegeScoreText: Text;
@@ -25,40 +22,6 @@ export class ScoreDisplay extends PixiContainer {
 			fill: "#fccb81",
 			stroke: { color: "#fccb81", width: 2 },
 		});
-
-		const playerNameTextStyle = new TextStyle({
-			fontFamily: "Arial",
-			fontSize: 32,
-			fontWeight: "bold",
-			fill: 0x4a90e2,
-			stroke: { color: 0x000000, width: 2 },
-		});
-
-		const enemyNameTextStyle = new TextStyle({
-			fontFamily: "Arial",
-			fontSize: 32,
-			fontWeight: "bold",
-			fill: 0xe24a4a,
-			stroke: { color: 0x000000, width: 2 },
-		});
-
-		this._playerNameText = new Text({
-			text: "PLAYER",
-			style: playerNameTextStyle,
-			anchor: 0.5,
-			x: 380,
-			y: 1270,
-		});
-		this.addChild(this._playerNameText);
-
-		this._enemyNameText = new Text({
-			text: "ENEMY",
-			style: enemyNameTextStyle,
-			anchor: 0.5,
-			x: 380,
-			y: 100,
-		});
-		this.addChild(this._enemyNameText);
 
 		const x = 700;
 
@@ -114,14 +77,6 @@ export class ScoreDisplay extends PixiContainer {
 		);
 
 		scoreText.text = totalScore.toString();
-	}
-
-	/**
-	 * Update player names if needed.
-	 */
-	public setPlayerNames(playerName: string, enemyName: string): void {
-		this._playerNameText.text = playerName;
-		this._enemyNameText.text = enemyName;
 	}
 
 	/**

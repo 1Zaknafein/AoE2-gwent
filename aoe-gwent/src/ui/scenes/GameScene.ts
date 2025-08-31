@@ -4,6 +4,10 @@ import { CardContainerManager } from "../../entities/card";
 import { Button, ScoreDisplay } from "../components";
 import { CardInteractionManager } from "../managers";
 import { CardDatabase } from "../../shared/database";
+import {
+	PlayerDisplayManager,
+	PlayerDisplayManagerConfig,
+} from "../../entities/player";
 import { Sprite } from "pixi.js";
 
 export class GameScene extends PixiContainer implements SceneInterface {
@@ -21,8 +25,9 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	private _playerDeckIds: number[] = [];
 	private _enemyDeckIds: number[] = [];
 
-	// Score display system
 	private _scoreDisplay!: ScoreDisplay;
+
+	private _playerDisplayManager!: PlayerDisplayManager;
 
 	constructor() {
 		super();
@@ -44,6 +49,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 		this.createCardContainers();
 		this.createScoreDisplaySystem();
+		this.createPlayerDisplaySystem();
 		this.createTestUI();
 
 		this.resizeAndCenter(Manager.width, Manager.height);
@@ -145,6 +151,72 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		// Set up automatic score updates
 		const { player, enemy } = this._cardContainers;
 		this._scoreDisplay.setupScoreEventListeners(player, enemy);
+	}
+
+	private createPlayerDisplaySystem(): void {
+		const config: PlayerDisplayManagerConfig = {
+			playerName: "PLAYER",
+			enemyName: "ENEMY",
+			playerPosition: { x: 180, y: 1050 },
+			enemyPosition: { x: 150, y: 150 },
+		};
+
+		this._playerDisplayManager = new PlayerDisplayManager(config);
+		this._gameBoard.addChild(this._playerDisplayManager);
+
+		// Set up automatic score tracking
+		const { player, enemy } = this._cardContainers;
+		const playerContainers = [player.melee, player.ranged, player.siege];
+		const enemyContainers = [enemy.melee, enemy.ranged, enemy.siege];
+
+		this._playerDisplayManager.setupScoreTracking(
+			playerContainers,
+			enemyContainers
+		);
+
+		this.setupHandCountTracking();
+		this.updatePlayerDisplayHandCounts();
+		this.positionPlayerDisplayElements();
+	}
+
+	private setupHandCountTracking(): void {
+		const { player, enemy } = this._cardContainers;
+
+		// Listen for card additions and removals from hand containers
+		const updateHandCounts = () => this.updatePlayerDisplayHandCounts();
+
+		player.hand.on("cardAdded", updateHandCounts);
+		player.hand.on("cardRemoved", updateHandCounts);
+		enemy.hand.on("cardAdded", updateHandCounts);
+		enemy.hand.on("cardRemoved", updateHandCounts);
+	}
+
+	private positionPlayerDisplayElements(): void {
+		const playerDisplay = this._playerDisplayManager.playerDisplay;
+		const enemyDisplay = this._playerDisplayManager.enemyDisplay;
+
+		playerDisplay.playerNameText.position.set(0, 0);
+		playerDisplay.setScorePosition(0, 0);
+		playerDisplay.handCountText.position.set(0, 0);
+		playerDisplay.setHealthIconsPosition(0, 0);
+
+		enemyDisplay.playerNameText.position.set(0, 0);
+		enemyDisplay.setScorePosition(0, 0);
+		enemyDisplay.handCountText.position.set(0, 0);
+		enemyDisplay.setHealthIconsPosition(0, 0);
+
+		// TODO Update positions for all elements of player display
+	}
+
+	private updatePlayerDisplayHandCounts(): void {
+		if (this._playerDisplayManager) {
+			const playerHandCount = this._cardContainers.player.hand.cardCount;
+			const enemyHandCount = this._cardContainers.enemy.hand.cardCount;
+			this._playerDisplayManager.updateHandCounts(
+				playerHandCount,
+				enemyHandCount
+			);
+		}
 	}
 
 	private createTestUI(): void {
