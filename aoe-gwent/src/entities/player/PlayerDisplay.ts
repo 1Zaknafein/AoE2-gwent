@@ -5,10 +5,10 @@ import {
 	Graphics,
 	FillGradient,
 	Color,
-	AlphaFilter,
 } from "pixi.js";
 import { PixiContainer, PixiAssets } from "../../plugins/engine";
 import { CardContainer } from "../card";
+import { ANTIALIAS_FILTER } from "../../shared/constant/Constants";
 
 export class PlayerDisplay extends PixiContainer {
 	public playerNameText!: Text;
@@ -22,8 +22,6 @@ export class PlayerDisplay extends PixiContainer {
 	private _currentHandCount = 0;
 	private _currentTotalScore = 0;
 	private _watchedContainers: CardContainer[] = [];
-
-	private _aaFilter: AlphaFilter;
 
 	constructor(data: PlayerDisplayData) {
 		super();
@@ -41,7 +39,6 @@ export class PlayerDisplay extends PixiContainer {
 		this.createScoreBackground();
 		this.createTextElements(data.playerName);
 		this.createHealthIcons();
-		this.initializeElementPositions();
 	}
 
 	public get handCount(): number {
@@ -97,6 +94,43 @@ export class PlayerDisplay extends PixiContainer {
 	public setTotalScore(score: number): void {
 		this._currentTotalScore = score;
 		this.totalScoreText.text = score.toString();
+	}
+
+	/**
+	 * Position all display elements based on whether this is a player or enemy display.
+	 * Uses different positioning logic for player vs enemy.
+	 */
+	public positionElements(): void {
+		if (this._isEnemy) {
+			this.positionEnemyElements();
+		} else {
+			this.positionPlayerElements();
+		}
+	}
+
+	/**
+	 * Position elements for the player display.
+	 */
+	private positionPlayerElements(): void {
+		this.handCountText.position.set(200, 115);
+
+		this.totalScoreText.position.set(422, 155);
+		this.scoreBackground.position = this.totalScoreText.position;
+
+		this.healthIcon1.position.set(160, 200);
+		this.healthIcon2.position.set(205, 200);
+	}
+
+	/**
+	 * Position elements for the enemy display.
+	 */
+	private positionEnemyElements(): void {
+		this.totalScoreText.position.set(422, 110);
+		this.scoreBackground.position = this.totalScoreText.position;
+		this.handCountText.position.set(200, 165);
+
+		this.healthIcon1.position.set(160, 80);
+		this.healthIcon2.position.set(205, 80);
 	}
 
 	/**
@@ -163,7 +197,7 @@ export class PlayerDisplay extends PixiContainer {
 
 		const handCountStyle = new TextStyle({
 			fontFamily: "Arial",
-			fontSize: 24,
+			fontSize: 40,
 			fontWeight: "bold",
 			fill: "#fccb81",
 			stroke: { color: "#000000", width: 1 },
@@ -231,16 +265,6 @@ export class PlayerDisplay extends PixiContainer {
 
 		this.addChild(this.healthIcon1);
 		this.addChild(this.healthIcon2);
-	}
-
-	// TODO Update positions to be set externally
-	private initializeElementPositions(): void {
-		this.playerNameText.position.set(0, 0);
-		this.scoreBackground.position.set(0, 0);
-		this.totalScoreText.position.set(0, 0);
-		this.handCountText.position.set(0, 0);
-		this.healthIcon1.position.set(0, 0);
-		this.healthIcon2.position.set(0, 0);
 	}
 
 	private updateTotalScore(): void {

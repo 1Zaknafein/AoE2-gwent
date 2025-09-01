@@ -80,6 +80,14 @@ export class PlayerDisplayManager extends PixiContainer {
 	}
 
 	/**
+	 * Position all display elements for both player and enemy displays.
+	 */
+	public positionDisplayElements(): void {
+		this._playerDisplay.positionElements();
+		this._enemyDisplay.positionElements();
+	}
+
+	/**
 	 * Get total scores for both players.
 	 */
 	public getScores(): { player: number; enemy: number } {

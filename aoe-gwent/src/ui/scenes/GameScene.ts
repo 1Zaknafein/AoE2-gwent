@@ -158,7 +158,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			playerName: "PLAYER",
 			enemyName: "ENEMY",
 			playerPosition: { x: 180, y: 1050 },
-			enemyPosition: { x: 150, y: 150 },
+			enemyPosition: { x: 180, y: 40 },
 		};
 
 		this._playerDisplayManager = new PlayerDisplayManager(config);
@@ -176,7 +176,9 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 		this.setupHandCountTracking();
 		this.updatePlayerDisplayHandCounts();
-		this.positionPlayerDisplayElements();
+
+		// Position all display elements
+		this._playerDisplayManager.positionDisplayElements();
 	}
 
 	private setupHandCountTracking(): void {
@@ -189,23 +191,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		player.hand.on("cardRemoved", updateHandCounts);
 		enemy.hand.on("cardAdded", updateHandCounts);
 		enemy.hand.on("cardRemoved", updateHandCounts);
-	}
-
-	private positionPlayerDisplayElements(): void {
-		const playerDisplay = this._playerDisplayManager.playerDisplay;
-		const enemyDisplay = this._playerDisplayManager.enemyDisplay;
-
-		playerDisplay.playerNameText.position.set(0, 0);
-		playerDisplay.setScorePosition(0, 0);
-		playerDisplay.handCountText.position.set(0, 0);
-		playerDisplay.setHealthIconsPosition(0, 0);
-
-		enemyDisplay.playerNameText.position.set(0, 0);
-		enemyDisplay.setScorePosition(0, 0);
-		enemyDisplay.handCountText.position.set(0, 0);
-		enemyDisplay.setHealthIconsPosition(0, 0);
-
-		// TODO Update positions for all elements of player display
 	}
 
 	private updatePlayerDisplayHandCounts(): void {
@@ -229,7 +214,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			35
 		);
 		this._multiTransferButton.x = 350;
-		this._multiTransferButton.y = 50;
+		this._multiTransferButton.y = 550;
 		this.addChild(this._multiTransferButton);
 
 		this._drawPlayerCardButton = new Button(
@@ -241,7 +226,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			35
 		);
 		this._drawPlayerCardButton.x = 50;
-		this._drawPlayerCardButton.y = 50;
+		this._drawPlayerCardButton.y = 550;
 		this.addChild(this._drawPlayerCardButton);
 
 		this._drawEnemyCardButton = new Button(
@@ -253,7 +238,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			35
 		);
 		this._drawEnemyCardButton.x = 200;
-		this._drawEnemyCardButton.y = 50;
+		this._drawEnemyCardButton.y = 550;
 		this.addChild(this._drawEnemyCardButton);
 	}
 
