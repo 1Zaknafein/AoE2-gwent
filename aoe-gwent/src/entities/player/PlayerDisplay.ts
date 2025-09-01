@@ -26,11 +26,6 @@ export class PlayerDisplay extends PixiContainer {
 	constructor(data: PlayerDisplayData) {
 		super();
 
-		this._aaFilter = new AlphaFilter({
-			antialias: true,
-			alpha: 1,
-		});
-
 		this._isEnemy = data.isEnemy || false;
 
 		this.position.set(data.position.x, data.position.y);
@@ -249,7 +244,7 @@ export class PlayerDisplay extends PixiContainer {
 			alpha: 1,
 		});
 
-		this.scoreBackground.filters = [this._aaFilter];
+		this.scoreBackground.filters = [ANTIALIAS_FILTER];
 
 		this.addChild(this.scoreBackground);
 	}

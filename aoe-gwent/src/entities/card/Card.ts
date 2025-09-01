@@ -1,10 +1,11 @@
-import { AlphaFilter, Color, FillGradient } from "pixi.js";
+import { Color, FillGradient } from "pixi.js";
 import {
 	PixiContainer,
 	PixiSprite,
 	PixiText,
 	PixiGraphics,
 } from "../../plugins/engine";
+import { ANTIALIAS_FILTER } from "../../shared/constant/Constants";
 
 export class Card extends PixiContainer {
 	private _cardData: CardData;
@@ -15,16 +16,10 @@ export class Card extends PixiContainer {
 	private _scoreBackground!: PixiGraphics;
 	private _iconBackground!: PixiGraphics;
 	private _showingBack: boolean = false;
-	private _aaFilter: AlphaFilter;
 
 	constructor(cardData: CardData) {
 		super();
 		this._cardData = cardData;
-
-		this._aaFilter = new AlphaFilter({
-			antialias: true,
-			alpha: 1,
-		});
 
 		this.createCard();
 		this.interactive = true;
@@ -68,7 +63,7 @@ export class Card extends PixiContainer {
 		this._scoreBackground.visible = true;
 		this.addChild(this._scoreBackground);
 
-		this._scoreBackground.filters = [this._aaFilter];
+		this._scoreBackground.filters = [ANTIALIAS_FILTER];
 
 		this._scoreText = new PixiText({
 			text: this._cardData.score.toString(),
