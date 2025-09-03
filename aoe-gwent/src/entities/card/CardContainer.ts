@@ -1,6 +1,7 @@
 import { FederatedPointerEvent, Graphics } from "pixi.js";
 import { PixiContainer } from "../../plugins/engine";
 import { Card, CardData, CardType } from "../card";
+import { Board } from "../board";
 import { gsap } from "gsap";
 
 export class CardContainer extends PixiContainer {
@@ -13,6 +14,7 @@ export class CardContainer extends PixiContainer {
 	private _isContainerInteractive: boolean = false;
 	private _areCardsInteractive: boolean = true;
 	private _containerType: CardType | null = null;
+	private _boardBackground: Board | null = null;
 
 	/**
 	 * Create a new CardContainer.
@@ -335,6 +337,39 @@ export class CardContainer extends PixiContainer {
 		this._boundsRect.clear();
 		this._boundsRect.rect(-this._maxWidth / 2, -110, this._maxWidth, 230);
 		this._boundsRect.fill({});
+	}
+
+	/**
+	 * Add a Board background to this container.
+	 * The board will match the container's bounds and be positioned behind all cards.
+	 */
+	public addBoardBackground(alpha: number = 0.3): void {
+		if (this._boardBackground) {
+			// Remove existing board background
+			this.removeChild(this._boardBackground);
+		}
+
+		// Create board with same dimensions as the bounds rect
+		this._boardBackground = new Board(this._maxWidth, 230);
+		this._boardBackground.alpha = alpha;
+		this._boardBackground.label = `${this.label}_board_background`;
+
+		// Position it to match the bounds rect position
+		this._boardBackground.x = 0; // Center horizontally (Board has centered anchor)
+		this._boardBackground.y = 0; // Center vertically
+
+		// Add it as the first child so it appears behind everything else
+		this.addChildAt(this._boardBackground, 0);
+	}
+
+	/**
+	 * Remove the board background if it exists.
+	 */
+	public removeBoardBackground(): void {
+		if (this._boardBackground) {
+			this.removeChild(this._boardBackground);
+			this._boardBackground = null;
+		}
 	}
 
 	public setContainerInteractive(interactive: boolean): void {

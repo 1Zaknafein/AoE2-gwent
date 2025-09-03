@@ -8,6 +8,7 @@ export const options: LoaderOptions = {
 				assets: {
 					background: "./sprites/background.webp",
 					loader: "./sprites/loader.png",
+					board_tile: "./sprites/board_tile.png",
 				},
 			},
 			{

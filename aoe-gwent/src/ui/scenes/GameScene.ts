@@ -48,6 +48,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		);
 
 		this.createCardContainers();
+		this.addBoardBackgroundsToContainers();
 		this.createScoreDisplaySystem();
 		this.createPlayerDisplaySystem();
 		this.createTestUI();
@@ -117,6 +118,28 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		this.on("pointerup", () =>
 			this._cardInteractionManager.handleGlobalClick()
 		);
+	}
+
+	private addBoardBackgroundsToContainers(): void {
+		// Add board backgrounds to all the main battle row containers
+		const { player, enemy } = this._cardContainers;
+
+		// Add boards to battle rows (these are the main gameplay areas)
+		const battleContainers = [
+			player.melee,
+			player.ranged,
+			player.siege,
+			enemy.melee,
+			enemy.ranged,
+			enemy.siege,
+		];
+
+		battleContainers.forEach((container) => {
+			container.addBoardBackground(0.4); // Semi-transparent
+		});
+
+		// Optionally add to weather container as well
+		this._cardContainers.weather.addBoardBackground(0.2); // More subtle for weather
 	}
 
 	/**
@@ -317,6 +340,9 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 		this._gameBoard.x = (screenWidth - this._gameBoard.width) / 2;
 		this._gameBoard.y = (screenHeight - this._gameBoard.height) / 2;
+
+		// The board is positioned relative to the card containers and will scale with the game board
+		// No need to manually reposition it since it's a child of _gameBoard
 	}
 
 	update(_framesPassed: number): void {}
