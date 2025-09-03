@@ -60,7 +60,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		this.createCardContainers();
 		this.createScoreDisplaySystem();
 		this.createPlayerDisplaySystem();
-		this.createTestUI();
 		this.createDebugPanel();
 
 		this.resizeAndCenter(Manager.width, Manager.height);
@@ -122,7 +121,10 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		);
 
 		this._cardInteractionManager.setupContainerInteractivity();
-		this.addSampleCards();
+
+		// Setup event listeners for server-controlled deck management
+		this.setupDeckEventListeners();
+
 		this._cardInteractionManager.setupPlayerHandInteractions();
 
 		this.on("pointerup", () =>
@@ -131,28 +133,15 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	}
 
 	/**
-	 * Debug function for adding sample cards to player and enemy hands.
-	 * TODO REMOVE ONCE GAME LOGIC IS IN PLACE.
+	 * Setup event listeners for server-controlled deck management
 	 */
-	private addSampleCards(): void {
-		// Generate random decks for both players
-		this._playerDeckIds = CardDatabase.generateRandomDeck(15);
-		this._enemyDeckIds = CardDatabase.generateRandomDeck(15);
-
-		console.log("Player deck card IDs:", this._playerDeckIds);
-		console.log("Enemy deck card IDs:", this._enemyDeckIds);
-
-		// Add initial cards to player hand from their deck
-		const initialPlayerHandIds = this._playerDeckIds.splice(0, 5); // Remove first 5 cards from deck
-		const playerHandCards =
-			CardDatabase.generateCardsFromIds(initialPlayerHandIds);
-		this._cardContainers.player.hand.addCardsBatch(playerHandCards);
-
-		// Add initial cards to enemy hand from their deck
-		const initialEnemyHandIds = this._enemyDeckIds.splice(0, 5); // Remove first 5 cards from deck
-		const enemyHandCards =
-			CardDatabase.generateCardsFromIds(initialEnemyHandIds);
-		this._cardContainers.enemy.hand.addCardsBatch(enemyHandCards);
+	private setupDeckEventListeners(): void {
+		// Listen for deck data from the server (via GameController)
+		this._gameController.on("deckDataReceived", (data: any) => {
+			console.log("GameScene: Received deck data from server", data);
+			// Cards are already added to containers by GameController
+			// Just log for confirmation
+		});
 	}
 
 	private createScoreDisplaySystem(): void {
@@ -213,44 +202,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 				enemyHandCount
 			);
 		}
-	}
-
-	private createTestUI(): void {
-		this._multiTransferButton = new Button(
-			"Transfer 3",
-			() => {
-				this.transferMultipleCards();
-			},
-			100,
-			35
-		);
-		this._multiTransferButton.x = 350;
-		this._multiTransferButton.y = 550;
-		this.addChild(this._multiTransferButton);
-
-		this._drawPlayerCardButton = new Button(
-			"Draw Player Card",
-			() => {
-				this.drawPlayerCard();
-			},
-			140,
-			35
-		);
-		this._drawPlayerCardButton.x = 50;
-		this._drawPlayerCardButton.y = 550;
-		this.addChild(this._drawPlayerCardButton);
-
-		this._drawEnemyCardButton = new Button(
-			"Draw Enemy Card",
-			() => {
-				this.drawEnemyCard();
-			},
-			140,
-			35
-		);
-		this._drawEnemyCardButton.x = 200;
-		this._drawEnemyCardButton.y = 550;
-		this.addChild(this._drawEnemyCardButton);
 	}
 
 	private setupGameControllerEvents(): void {

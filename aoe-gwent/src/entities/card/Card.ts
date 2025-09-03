@@ -14,7 +14,6 @@ export class Card extends PixiContainer {
 	private _scoreText!: PixiText;
 	private _typeIcon!: PixiSprite;
 	private _scoreBackground!: PixiGraphics;
-	private _iconBackground!: PixiGraphics;
 	private _showingBack: boolean = false;
 
 	constructor(cardData: CardData) {
@@ -113,6 +112,61 @@ export class Card extends PixiContainer {
 	}
 
 	/**
+	 * Update the card's data and refresh the visual elements
+	 * Used when revealing enemy cards
+	 */
+	public updateCardData(newCardData: CardData): void {
+		this._cardData = newCardData;
+
+		// Update the card face texture
+		this._cardFace.texture = PixiSprite.from(newCardData.faceTexture).texture;
+
+		// Update the score
+		this._scoreText.text = newCardData.score.toString();
+
+		// Update the type icon
+		const iconTexture = `icon_${newCardData.type}`;
+		this._typeIcon.texture = PixiSprite.from(iconTexture).texture;
+
+		console.log(`Card updated to: ${newCardData.name}`);
+	}
+
+	/**
+	 * Reveal card with flip animation
+	 * Updates the card data and animates from back to front
+	 */
+	public async revealCard(newCardData: CardData): Promise<void> {
+		return new Promise((resolve) => {
+			// First update the card data while it's still showing back
+			this.updateCardData(newCardData);
+
+			// Import gsap for animation
+			import("gsap").then(({ gsap }) => {
+				// Animate scale to 0 (flip effect)
+				gsap.to(this.scale, {
+					x: 0,
+					duration: 0.15,
+					ease: "power2.in",
+					onComplete: () => {
+						// Switch to front view at the middle of animation
+						this.showFront();
+
+						// Animate scale back to 1
+						gsap.to(this.scale, {
+							x: 1,
+							duration: 0.15,
+							ease: "power2.out",
+							onComplete: () => {
+								resolve();
+							},
+						});
+					},
+				});
+			});
+		});
+	}
+
+	/**
 	 * Show the card back (hidden state) without animation.
 	 * Useful for deck cards that should always be hidden.
 	 */
@@ -123,7 +177,6 @@ export class Card extends PixiContainer {
 		this._scoreText.visible = false;
 		this._scoreBackground.visible = false;
 		this._typeIcon.visible = false;
-		this._iconBackground.visible = false;
 	}
 
 	/**
@@ -137,7 +190,6 @@ export class Card extends PixiContainer {
 		this._scoreText.visible = true;
 		this._scoreBackground.visible = true;
 		this._typeIcon.visible = true;
-		this._iconBackground.visible = true;
 	}
 }
 

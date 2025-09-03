@@ -23,10 +23,12 @@ export interface GameState {
 	playerPassed: boolean;
 	enemyPassed: boolean;
 	startingPlayer: "player" | "enemy"; // Who started this round/game
+	playerHandSize: number; // Number of cards in player hand
+	enemyHandSize: number; // Number of cards in enemy hand
 }
 
 export interface ServerResponse {
-	type: "game_state_update" | "enemy_action" | "game_start";
+	type: "game_state_update" | "enemy_action" | "game_start" | "deck_data";
 	gameState?: GameState;
 	action?: {
 		type: ActionType;
@@ -34,6 +36,8 @@ export interface ServerResponse {
 		targetRow?: "melee" | "ranged" | "siege";
 		playerId: "player" | "enemy";
 	};
+	playerDeck?: number[]; // Array of card IDs for player's deck
+	playerHand?: number[]; // Array of card IDs for player's initial hand
 }
 
 export interface PlayerAction {
@@ -62,6 +66,8 @@ export class GameStateManager extends EventEmitter {
 			playerPassed: false,
 			enemyPassed: false,
 			startingPlayer: "player", // Default, will be overridden by server
+			playerHandSize: 0,
+			enemyHandSize: 0,
 		};
 	}
 
@@ -80,6 +86,9 @@ export class GameStateManager extends EventEmitter {
 				break;
 			case "enemy_action":
 				this.handleEnemyAction(response);
+				break;
+			case "deck_data":
+				this.handleDeckData(response);
 				break;
 		}
 	}
@@ -116,6 +125,25 @@ export class GameStateManager extends EventEmitter {
 				this._gameState = response.gameState;
 				this.emit("gameStateChanged", this._gameState);
 			}
+		}
+	}
+
+	private handleDeckData(response: ServerResponse): void {
+		console.log("Received deck data from server");
+
+		// Calculate enemy hand size based on player hand size (they should be equal initially)
+		const enemyHandSize = response.playerHand ? response.playerHand.length : 5;
+
+		this.emit("deckDataReceived", {
+			playerDeck: response.playerDeck,
+			playerHand: response.playerHand,
+			enemyHandSize: enemyHandSize, // Add enemy hand size for dummy cards
+		});
+
+		// Update game state if provided
+		if (response.gameState) {
+			this._gameState = response.gameState;
+			this.emit("gameStateChanged", this._gameState);
 		}
 	}
 

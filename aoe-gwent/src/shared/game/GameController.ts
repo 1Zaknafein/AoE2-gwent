@@ -3,7 +3,7 @@ import { GameStateManager, ActionType } from "./GameStateManager";
 import { ServerAPI } from "../../api/ServerAPI";
 import { CardContainerManager } from "../../entities/card";
 import { CardDatabase } from "../../shared/database";
-import { CardData } from "../../entities/card";
+import { CardData, CardType } from "../../entities/card";
 
 // Event type definitions for GameController
 export interface EnemyCardPlacedEvent {
@@ -48,8 +48,12 @@ export class GameController extends EventEmitter {
 			console.log("Game started:", gameState);
 			this.emit("gameStarted", gameState);
 		});
-	}
 
+		// Listen for deck data from server
+		this._gameStateManager.on("deckDataReceived", (data) => {
+			this.handleDeckDataReceived(data);
+		});
+	}
 	/**
 	 * Handle enemy actions received from the server
 	 */
@@ -84,7 +88,7 @@ export class GameController extends EventEmitter {
 			return;
 		}
 
-		// Get card data
+		// Get card data from database
 		const cardData = CardDatabase.getCardById(cardId);
 		if (!cardData) {
 			console.error("Could not find card data for ID:", cardId);
@@ -98,47 +102,36 @@ export class GameController extends EventEmitter {
 			return;
 		}
 
-		// Check if enemy has cards in hand to play
+		// Get enemy hand
 		const enemyHand = this._cardContainers.enemy.hand;
 		if (enemyHand.cardCount === 0) {
-			console.warn("Enemy has no cards in hand - adding card to hand first");
-			// Add the card to enemy hand first
-			await enemyHand.addCardWithAnimation(cardData, { x: -100, y: -100 }, 0.3);
+			console.warn("Enemy has no cards in hand to play");
+			return;
 		}
 
-		// Find the card in enemy hand or add it if not found
-		let cardToMove = enemyHand
-			.getAllCards()
-			.find((card) => card.cardData.name === cardData.name);
-
-		if (!cardToMove) {
-			// If card not found in hand, add it temporarily
-			console.log("Card not found in enemy hand, adding it temporarily");
-			await enemyHand.addCardWithAnimation(cardData, { x: -100, y: -100 }, 0.1);
-			cardToMove = enemyHand
-				.getAllCards()
-				.find((card) => card.cardData.name === cardData.name);
+		// Take the first dummy card from enemy hand
+		const dummyCard = enemyHand.getCard(0);
+		if (!dummyCard) {
+			console.error("Could not get dummy card from enemy hand");
+			return;
 		}
 
-		if (cardToMove) {
-			// Get the index of the card to transfer
-			const cardIndex = enemyHand.getAllCards().indexOf(cardToMove);
-			if (cardIndex !== -1) {
-				console.log(`Enemy placing ${cardData.name} on ${targetRow} row`);
+		console.log(
+			`Enemy revealing and placing ${cardData.name} on ${targetRow} row`
+		);
 
-				// Transfer the card from enemy hand to target row
-				enemyHand.transferCardTo(cardIndex, targetContainer);
+		// Reveal the card with flip animation
+		await dummyCard.revealCard(cardData);
 
-				// Emit event for UI updates
-				this.emit("enemyCardPlaced", {
-					cardData,
-					targetRow,
-					container: targetContainer,
-				});
-			}
-		} else {
-			console.error("Could not find or create card to move");
-		}
+		// Transfer the card from enemy hand to target row
+		enemyHand.transferCardTo(0, targetContainer);
+
+		// Emit event for UI updates
+		this.emit("enemyCardPlaced", {
+			cardData,
+			targetRow,
+			container: targetContainer,
+		});
 	}
 
 	/**
@@ -261,5 +254,81 @@ export class GameController extends EventEmitter {
 	 */
 	public get gameState() {
 		return this._gameStateManager.gameState;
+	}
+
+	/**
+	 * Handle deck data received from server
+	 */
+	private handleDeckDataReceived(data: any): void {
+		console.log("Handling deck data received:", data);
+
+		// Add player cards to hand (convert IDs to CardData)
+		if (data.playerHand && Array.isArray(data.playerHand)) {
+			const playerHand = this._cardContainers.player.hand;
+			if (playerHand) {
+				// Clear existing cards first
+				playerHand.removeAllCards();
+
+				// Convert card IDs to CardData and add to hand
+				const playerCardData = CardDatabase.generateCardsFromIds(
+					data.playerHand
+				);
+
+				// Use addCardsBatch for instant addition (no animations)
+				playerHand.addCardsBatch(playerCardData);
+
+				// Set all player cards to show front (player can see their own cards)
+				playerHand.getAllCards().forEach((card) => {
+					card.showFront();
+				});
+
+				console.log(
+					"Added",
+					playerCardData.length,
+					"cards to player hand:",
+					playerCardData.map((c) => c.name)
+				);
+			}
+		}
+
+		// Add dummy enemy cards (backs only) - use hand size from data or default
+		const enemyHandSize = data.enemyHandSize || data.playerHand?.length || 5;
+		const enemyHand = this._cardContainers.enemy.hand;
+		if (enemyHand) {
+			// Clear existing cards first
+			enemyHand.removeAllCards();
+
+			// Create dummy card data for enemy hand
+			const dummyCards = [];
+			for (let i = 0; i < enemyHandSize; i++) {
+				dummyCards.push(this.createDummyEnemyCardData());
+			}
+
+			// Use addCardsBatch for instant addition (no animations)
+			enemyHand.addCardsBatch(dummyCards);
+
+			// Set all enemy cards to show back (hidden from player)
+			enemyHand.getAllCards().forEach((card) => {
+				card.showBack();
+			});
+
+			console.log("Added", enemyHandSize, "dummy cards to enemy hand");
+		}
+
+		// Emit event for UI updates
+		this.emit("deckDataReceived", data);
+	}
+
+	/**
+	 * Create dummy enemy card data for server-controlled deck
+	 */
+	private createDummyEnemyCardData(): CardData {
+		// Create a dummy card with minimal data
+		return {
+			name: "Hidden Card",
+			score: 0,
+			faceTexture: "card_back",
+			type: CardType.MELEE,
+		};
 	}
 }

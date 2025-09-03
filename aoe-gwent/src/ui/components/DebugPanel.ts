@@ -226,6 +226,8 @@ Enemy Passed: ${gameState.enemyPassed}`;
 				playerPassed: false,
 				enemyPassed: false,
 				startingPlayer: startingPlayer,
+				playerHandSize: 0, // Will be updated when deck data is sent
+				enemyHandSize: 0,
 			},
 		};
 
@@ -233,6 +235,45 @@ Enemy Passed: ${gameState.enemyPassed}`;
 			`Debug Panel: Simulating game start - ${startingPlayer} goes first`
 		);
 		this._gameStateManager.handleServerResponse(gameStartResponse);
+
+		// Also simulate deck data from server
+		this.simulateDeckData();
+	}
+
+	private simulateDeckData(): void {
+		// Simulate server-side deck generation
+		console.log("Debug Panel: Server generating decks and initial hands");
+
+		// Generate player's deck (server-side logic)
+		const playerDeckIds = [1, 2, 3, 4, 5, 6, 1, 2, 3]; // Mix of cards, duplicates allowed
+
+		// Server decides initial hand size (typically 10 cards in Gwent)
+		const initialHandSize = 5; // Start with 5 cards for testing
+
+		// Player gets card IDs for their initial hand
+		const playerInitialHandIds = playerDeckIds.slice(0, initialHandSize);
+
+		// Remaining cards stay in player's deck
+		const remainingPlayerDeckIds = playerDeckIds.slice(initialHandSize);
+
+		const deckDataResponse: ServerResponse = {
+			type: "deck_data",
+			playerHand: playerInitialHandIds, // Card IDs for player's hand
+			playerDeck: remainingPlayerDeckIds, // Remaining card IDs in player deck
+			gameState: {
+				...this._gameStateManager.gameState,
+				playerHandSize: initialHandSize,
+				enemyHandSize: initialHandSize,
+			},
+		};
+
+		console.log(
+			"Debug Panel: Sending initial hands - Player gets card IDs:",
+			playerInitialHandIds
+		);
+		console.log("Debug Panel: Enemy gets", initialHandSize, "hidden cards");
+
+		this._gameStateManager.handleServerResponse(deckDataResponse);
 	}
 
 	private switchTurn(): void {
