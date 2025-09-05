@@ -318,8 +318,8 @@ export class GameController extends EventEmitter {
 	 * Create dummy enemy card data for server-controlled deck
 	 */
 	private createDummyEnemyCardData(): CardData {
-		// Create a dummy card with minimal data
 		return {
+			id: -1,
 			name: "Hidden Card",
 			score: 0,
 			faceTexture: "card_back",

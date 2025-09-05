@@ -199,6 +199,7 @@ export enum CardType {
 }
 
 export interface CardData {
+	id: number;
 	name: string;
 	score: number;
 	faceTexture: string;

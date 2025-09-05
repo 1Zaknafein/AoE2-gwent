@@ -95,11 +95,8 @@ export class ServerAPI {
 			console.log("Sending action to server:", action);
 
 			// TODO: Implement actual HTTP request to server
-			const payload = {
-				sessionId: this._sessionId,
-				action: action,
-				timestamp: Date.now(),
-			};
+			// When implemented, would send:
+			// { sessionId: this._sessionId, action: action, timestamp: Date.now() }
 
 			// Simulate network delay
 			await new Promise((resolve) => setTimeout(resolve, 100));

@@ -1,66 +1,54 @@
 import { CardData, CardType } from "../../entities/card";
 
 /**
- * Card database that maps card IDs to their data.
+ * Card database that stores card definitions.
  * This simulates what would eventually come from a server.
  */
 export class CardDatabase {
-	private static readonly cardMap: Map<number, CardData> = new Map([
-		[
-			1,
-			{
-				name: "Knight",
-				score: 5,
-				faceTexture: "knight",
-				type: CardType.MELEE,
-			},
-		],
-		[
-			2,
-			{
-				name: "Crossbowman",
-				score: 3,
-				faceTexture: "crossbowman",
-				type: CardType.RANGED,
-			},
-		],
-		[
-			3,
-			{
-				name: "Mangonel",
-				score: 8,
-				faceTexture: "mangonel",
-				type: CardType.SIEGE,
-			},
-		],
-		[
-			4,
-			{
-				name: "Light Cavalry",
-				score: 3,
-				faceTexture: "light_cavalry",
-				type: CardType.MELEE,
-			},
-		],
-		[
-			5,
-			{
-				name: "Teutonic Knight",
-				score: 10,
-				faceTexture: "teutonic_knight",
-				type: CardType.MELEE,
-			},
-		],
-		[
-			6,
-			{
-				name: "Archer",
-				score: 2,
-				faceTexture: "archer",
-				type: CardType.RANGED,
-			},
-		],
-	]);
+	private static readonly cards: CardData[] = [
+		{
+			id: 1,
+			name: "Knight",
+			score: 5,
+			faceTexture: "knight",
+			type: CardType.MELEE,
+		},
+		{
+			id: 2,
+			name: "Crossbowman",
+			score: 3,
+			faceTexture: "crossbowman",
+			type: CardType.RANGED,
+		},
+		{
+			id: 3,
+			name: "Mangonel",
+			score: 8,
+			faceTexture: "mangonel",
+			type: CardType.SIEGE,
+		},
+		{
+			id: 4,
+			name: "Light Cavalry",
+			score: 3,
+			faceTexture: "light_cavalry",
+			type: CardType.MELEE,
+		},
+		{
+			id: 5,
+			name: "Teutonic Knight",
+			score: 10,
+			faceTexture: "teutonic_knight",
+			type: CardType.MELEE,
+		},
+		{
+			id: 6,
+			name: "Archer",
+			score: 2,
+			faceTexture: "archer",
+			type: CardType.RANGED,
+		},
+	];
 
 	/**
 	 * Generate card data from a list of card IDs.
@@ -71,10 +59,12 @@ export class CardDatabase {
 		const cardDataList: CardData[] = [];
 
 		for (const id of cardIds) {
-			const cardData = this.cardMap.get(id);
+			const cardData = this.cards.find((card) => card.id === id);
 
 			if (cardData) {
+				// Return a copy to avoid reference issues
 				const cardCopy: CardData = {
+					id: cardData.id,
 					name: cardData.name,
 					score: cardData.score,
 					faceTexture: cardData.faceTexture,
@@ -96,11 +86,12 @@ export class CardDatabase {
 	 * @returns CardData if found, undefined otherwise
 	 */
 	public static getCardById(id: number): CardData | undefined {
-		const cardData = this.cardMap.get(id);
+		const cardData = this.cards.find((card) => card.id === id);
 
 		if (cardData) {
 			// Return a copy to avoid reference issues
 			return {
+				id: cardData.id,
 				name: cardData.name,
 				score: cardData.score,
 				faceTexture: cardData.faceTexture,
@@ -116,7 +107,7 @@ export class CardDatabase {
 	 * @returns Array of all card IDs in the database
 	 */
 	public static getAllCardIds(): number[] {
-		return Array.from(this.cardMap.keys());
+		return this.cards.map((card) => card.id);
 	}
 
 	/**
@@ -125,7 +116,7 @@ export class CardDatabase {
 	 * @returns True if the ID exists, false otherwise
 	 */
 	public static hasCard(id: number): boolean {
-		return this.cardMap.has(id);
+		return this.cards.some((card) => card.id === id);
 	}
 
 	/**

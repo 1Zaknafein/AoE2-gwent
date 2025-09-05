@@ -213,44 +213,19 @@ export class CardInteractionManager {
 			targetRowName &&
 			this._gameController.isPlayerTurn
 		) {
-			// Get card data for the ID (we'll need to find the card ID)
-			const cardData = this._selectedCard.cardData;
-			// Find the card ID from the database - this is a simplified approach
-			// In a real implementation, cards would have IDs stored with them
-			const cardId = this.findCardIdByData(cardData);
+			const cardId = this._selectedCard.cardData.id;
 
-			if (cardId) {
-				this._gameController
-					.sendPlayerAction(cardId, targetRowName)
-					.catch((error) => {
-						console.error("Failed to send player action:", error);
-					});
-			}
+			this._gameController
+				.sendPlayerAction(cardId, targetRowName)
+				.catch((error) => {
+					console.error("Failed to send player action:", error);
+				});
 		}
 
 		// Perform the card transfer
 		playerHand.transferCardTo(cardIndex, targetContainer);
 
 		this._selectedCard = null;
-	}
-
-	/**
-	 * Helper method to find card ID by card data
-	 * This is a simplified approach - in a real implementation,
-	 * cards would store their IDs directly
-	 */
-	private findCardIdByData(cardData: any): number | null {
-		// This is a simple lookup - in practice you'd want a more robust solution
-		const cardNames = {
-			Knight: 1,
-			Crossbowman: 2,
-			Mangonel: 3,
-			"Light Cavalry": 4,
-			"Teutonic Knight": 5,
-			Archer: 6,
-		};
-
-		return cardNames[cardData.name as keyof typeof cardNames] || null;
 	}
 
 	public get selectedCard(): Card | null {
