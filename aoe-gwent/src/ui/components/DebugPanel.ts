@@ -1,5 +1,5 @@
 import { PixiContainer, PixiSprite, PixiText } from "../../plugins/engine";
-import { Button } from "../components";
+import { DebugButton } from "../components";
 import {
 	GameStateManager,
 	GamePhase,
@@ -18,11 +18,11 @@ export class DebugPanel extends PixiContainer {
 
 	// UI Elements
 	private _background!: PixiSprite;
-	private _toggleButton!: Button;
-	private _enemyPlaceCardButton!: Button;
-	private _enemyPassTurnButton!: Button;
-	private _startGameButton!: Button;
-	private _switchTurnButton!: Button;
+	private _toggleButton!: DebugButton;
+	private _enemyPlaceCardButton!: DebugButton;
+	private _enemyPassTurnButton!: DebugButton;
+	private _startGameButton!: DebugButton;
+	private _switchTurnButton!: DebugButton;
 	private _statusText!: PixiText;
 
 	// Panel properties
@@ -40,7 +40,7 @@ export class DebugPanel extends PixiContainer {
 	}
 
 	private createToggleButton(): void {
-		this._toggleButton = new Button(
+		this._toggleButton = new DebugButton(
 			"Debug Panel",
 			() => this.togglePanel(),
 			120,
@@ -92,7 +92,7 @@ export class DebugPanel extends PixiContainer {
 		this.addChild(this._statusText);
 
 		// Create buttons - moved down to avoid overlap
-		this._startGameButton = new Button(
+		this._startGameButton = new DebugButton(
 			"Start (Player)",
 			() => this.simulateGameStart("player"),
 			150,
@@ -102,7 +102,7 @@ export class DebugPanel extends PixiContainer {
 		this._startGameButton.y = 200; // Moved from 130 to 200
 		this.addChild(this._startGameButton);
 
-		const startGameEnemyButton = new Button(
+		const startGameEnemyButton = new DebugButton(
 			"Start (Enemy)",
 			() => this.simulateGameStart("enemy"),
 			150,
@@ -112,7 +112,7 @@ export class DebugPanel extends PixiContainer {
 		startGameEnemyButton.y = 200; // Moved from 130 to 200
 		this.addChild(startGameEnemyButton);
 
-		this._switchTurnButton = new Button(
+		this._switchTurnButton = new DebugButton(
 			"Switch Turn",
 			() => this.switchTurn(),
 			150,
@@ -122,7 +122,7 @@ export class DebugPanel extends PixiContainer {
 		this._switchTurnButton.y = 240; // Moved from 170 to 240
 		this.addChild(this._switchTurnButton);
 
-		this._enemyPlaceCardButton = new Button(
+		this._enemyPlaceCardButton = new DebugButton(
 			"Enemy Place Card",
 			() => this.simulateEnemyPlaceCard(),
 			150,
@@ -132,7 +132,7 @@ export class DebugPanel extends PixiContainer {
 		this._enemyPlaceCardButton.y = 240; // Moved from 170 to 240
 		this.addChild(this._enemyPlaceCardButton);
 
-		this._enemyPassTurnButton = new Button(
+		this._enemyPassTurnButton = new DebugButton(
 			"Enemy Pass Turn",
 			() => this.simulateEnemyPassTurn(),
 			150,
@@ -150,7 +150,7 @@ export class DebugPanel extends PixiContainer {
 		const cardTypes = ["melee", "ranged", "siege"] as const;
 
 		cardTypes.forEach((rowType, index) => {
-			const button = new Button(
+			const button = new DebugButton(
 				`Enemy -> ${rowType.charAt(0).toUpperCase() + rowType.slice(1)}`,
 				() => this.simulateEnemyPlaceSpecificCard(rowType),
 				150,

@@ -175,9 +175,8 @@ export class GameController extends EventEmitter {
 		targetRow: "melee" | "ranged" | "siege"
 	): Promise<void> {
 		const success = await this._serverAPI.sendCardPlacement(cardId, targetRow);
-		if (success) {
-			console.log("Player action sent successfully");
-		} else {
+
+		if (!success) {
 			console.error("Failed to send player action");
 		}
 	}
@@ -187,9 +186,8 @@ export class GameController extends EventEmitter {
 	 */
 	public async sendPassTurn(): Promise<void> {
 		const success = await this._serverAPI.sendPassTurn();
-		if (success) {
-			console.log("Pass turn sent successfully");
-		} else {
+
+		if (!success) {
 			console.error("Failed to send pass turn");
 		}
 	}

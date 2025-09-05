@@ -101,8 +101,6 @@ export class ServerAPI {
 				timestamp: Date.now(),
 			};
 
-			console.log("Action payload:", payload);
-
 			// Simulate network delay
 			await new Promise((resolve) => setTimeout(resolve, 100));
 

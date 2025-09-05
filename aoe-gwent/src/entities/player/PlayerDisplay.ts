@@ -9,6 +9,8 @@ import {
 import { PixiContainer, PixiAssets } from "../../plugins/engine";
 import { CardContainer } from "../card";
 import { ANTIALIAS_FILTER } from "../../shared/constant/Constants";
+import { PassButton } from "../../ui/components";
+import { GameController } from "../../shared/game";
 
 export class PlayerDisplay extends PixiContainer {
 	public playerNameText!: Text;
@@ -17,16 +19,19 @@ export class PlayerDisplay extends PixiContainer {
 	public healthIcon1!: Sprite;
 	public healthIcon2!: Sprite;
 	public scoreBackground!: Graphics;
+	public passButton?: PassButton;
 
 	private _isEnemy: boolean;
 	private _currentHandCount = 0;
 	private _currentTotalScore = 0;
 	private _watchedContainers: CardContainer[] = [];
+	private _gameController?: GameController;
 
 	constructor(data: PlayerDisplayData) {
 		super();
 
 		this._isEnemy = data.isEnemy || false;
+		this._gameController = data.gameController;
 
 		this.position.set(data.position.x, data.position.y);
 
@@ -34,6 +39,11 @@ export class PlayerDisplay extends PixiContainer {
 		this.createScoreBackground();
 		this.createTextElements(data.playerName);
 		this.createHealthIcons();
+
+		// Only create pass button for player
+		if (!this._isEnemy && this._gameController) {
+			this.createPassButton();
+		}
 	}
 
 	public get handCount(): number {
@@ -114,6 +124,10 @@ export class PlayerDisplay extends PixiContainer {
 
 		this.healthIcon1.position.set(160, 200);
 		this.healthIcon2.position.set(205, 200);
+
+		if (this.passButton) {
+			this.passButton.position.set(260, 185);
+		}
 	}
 
 	/**
@@ -262,6 +276,17 @@ export class PlayerDisplay extends PixiContainer {
 		this.addChild(this.healthIcon2);
 	}
 
+	private createPassButton(): void {
+		this.passButton = new PassButton(() => this.onPassButtonClick());
+		this.addChild(this.passButton);
+	}
+
+	private async onPassButtonClick(): Promise<void> {
+		if (this._gameController) {
+			await this._gameController.sendPassTurn();
+		}
+	}
+
 	private updateTotalScore(): void {
 		const totalScore = this._watchedContainers.reduce((sum, container) => {
 			const cards = container.getAllCards();
@@ -280,4 +305,5 @@ export interface PlayerDisplayData {
 	playerName: string;
 	isEnemy?: boolean;
 	position: { x: number; y: number };
+	gameController?: GameController; // Optional - only needed for player (not enemy)
 }

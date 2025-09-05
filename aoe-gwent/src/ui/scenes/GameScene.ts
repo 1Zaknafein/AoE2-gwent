@@ -138,12 +138,12 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			enemyName: "ENEMY",
 			playerPosition: { x: 180, y: 1050 },
 			enemyPosition: { x: 180, y: 40 },
+			gameController: this._gameController,
 		};
 
 		this._playerDisplayManager = new PlayerDisplayManager(config);
 		this._gameBoard.addChild(this._playerDisplayManager);
 
-		// Set up automatic score tracking
 		const { player, enemy } = this._cardContainers;
 		const playerContainers = [player.melee, player.ranged, player.siege];
 		const enemyContainers = [enemy.melee, enemy.ranged, enemy.siege];

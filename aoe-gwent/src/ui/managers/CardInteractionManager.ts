@@ -222,9 +222,6 @@ export class CardInteractionManager {
 			if (cardId) {
 				this._gameController
 					.sendPlayerAction(cardId, targetRowName)
-					.then(() => {
-						console.log("Player action sent to server");
-					})
 					.catch((error) => {
 						console.error("Failed to send player action:", error);
 					});
