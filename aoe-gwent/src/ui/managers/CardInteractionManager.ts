@@ -121,6 +121,12 @@ export class CardInteractionManager {
 			return;
 		}
 
+		// Block card selection if player cannot act
+		if (this._gameController && !this._gameController.canPlayerAct) {
+			this._cardClickInProgress = false;
+			return;
+		}
+
 		if (this._selectedCard === card) {
 			this.deselectCard();
 		} else {
@@ -175,6 +181,11 @@ export class CardInteractionManager {
 	private placeSelectedCard(targetContainer: any): void {
 		if (!this._selectedCard) return;
 
+		// Block card placement if player cannot act
+		if (this._gameController && !this._gameController.canPlayerAct) {
+			return;
+		}
+
 		// Check if trying to place on enemy rows (Player 1 can only place on their own rows)
 		const enemyRows = [
 			this._cardContainers.enemy.melee,
@@ -207,11 +218,11 @@ export class CardInteractionManager {
 			targetRowName = "siege";
 		}
 
-		// Send action to server if game controller is available and it's player's turn
+		// Send action to server if game controller is available and player can act
 		if (
 			this._gameController &&
 			targetRowName &&
-			this._gameController.isPlayerTurn
+			this._gameController.canPlayerAct
 		) {
 			const cardId = this._selectedCard.cardData.id;
 

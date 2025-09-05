@@ -20,6 +20,7 @@ export class GameController extends EventEmitter {
 	private _gameStateManager: GameStateManager;
 	private _serverAPI: ServerAPI;
 	private _cardContainers: CardContainerManager;
+	private _actionsBlocked: boolean = false;
 
 	constructor(cardContainers: CardContainerManager) {
 		super();
@@ -39,12 +40,14 @@ export class GameController extends EventEmitter {
 
 		// Listen for game state changes
 		this._gameStateManager.on("gameStateChanged", (gameState) => {
+			this.unblockActions();
 			this.emit("gameStateChanged", gameState);
 		});
 
 		// Listen for game start
 		this._gameStateManager.on("gameStarted", (gameState) => {
 			console.log("Game started");
+			this.unblockActions();
 			this.emit("gameStarted", gameState);
 		});
 
@@ -174,10 +177,29 @@ export class GameController extends EventEmitter {
 		cardId: number,
 		targetRow: "melee" | "ranged" | "siege"
 	): Promise<void> {
-		const success = await this._serverAPI.sendCardPlacement(cardId, targetRow);
+		// Check if player can act before sending
+		if (!this.canPlayerAct) {
+			return;
+		}
 
-		if (!success) {
-			console.error("Failed to send player action");
+		// Block actions immediately to prevent spam clicking
+		this.blockActions();
+
+		try {
+			const success = await this._serverAPI.sendCardPlacement(
+				cardId,
+				targetRow
+			);
+
+			if (!success) {
+				console.error("Failed to send player action");
+				// Unblock actions if the request failed so player can retry
+				this.unblockActions();
+			}
+		} catch (error) {
+			console.error("Error sending player action:", error);
+			// Unblock actions on error so player can retry
+			this.unblockActions();
 		}
 	}
 
@@ -185,10 +207,27 @@ export class GameController extends EventEmitter {
 	 * Send pass turn action to server
 	 */
 	public async sendPassTurn(): Promise<void> {
-		const success = await this._serverAPI.sendPassTurn();
+		// Check if player can act before sending
+		if (!this.canPlayerAct) {
+			return;
+		}
 
-		if (!success) {
-			console.error("Failed to send pass turn");
+		// Block actions immediately to prevent spam clicking
+		this.blockActions();
+
+		try {
+			const success = await this._serverAPI.sendPassTurn();
+
+			if (!success) {
+				console.error("Failed to send pass turn");
+				// Unblock actions if the request failed so player can retry
+				this.unblockActions();
+			}
+			// Note: Actions remain blocked until server responds with game state update
+		} catch (error) {
+			console.error("Error sending pass turn:", error);
+			// Unblock actions on error so player can retry
+			this.unblockActions();
 		}
 	}
 
@@ -244,6 +283,40 @@ export class GameController extends EventEmitter {
 	 */
 	public get isEnemyTurn(): boolean {
 		return this._gameStateManager.isEnemyTurn;
+	}
+
+	/**
+	 * Check if player actions are currently allowed
+	 */
+	public get canPlayerAct(): boolean {
+		return this.isPlayerTurn && !this._actionsBlocked;
+	}
+
+	/**
+	 * Check if actions are currently blocked (waiting for server response)
+	 */
+	public get areActionsBlocked(): boolean {
+		return this._actionsBlocked;
+	}
+
+	/**
+	 * Block all player actions (called when waiting for server response)
+	 */
+	private blockActions(): void {
+		if (!this._actionsBlocked) {
+			this._actionsBlocked = true;
+			this.emit("actionsBlocked");
+		}
+	}
+
+	/**
+	 * Unblock player actions (called when server response received)
+	 */
+	private unblockActions(): void {
+		if (this._actionsBlocked) {
+			this._actionsBlocked = false;
+			this.emit("actionsUnblocked");
+		}
 	}
 
 	/**

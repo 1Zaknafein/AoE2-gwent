@@ -138,9 +138,6 @@ export class GameStateManager extends EventEmitter {
 				"gameStarted",
 				"Game started - both players have received their cards"
 			);
-			console.log(
-				"Game started - deck data received and game state initialized"
-			);
 		}
 	}
 

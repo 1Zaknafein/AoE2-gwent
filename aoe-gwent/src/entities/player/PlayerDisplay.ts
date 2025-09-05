@@ -283,6 +283,9 @@ export class PlayerDisplay extends PixiContainer {
 
 	private async onPassButtonClick(): Promise<void> {
 		if (this._gameController) {
+			if (!this._gameController.canPlayerAct) {
+				return;
+			}
 			await this._gameController.sendPassTurn();
 		}
 	}
