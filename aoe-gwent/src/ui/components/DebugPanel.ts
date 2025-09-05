@@ -209,68 +209,53 @@ Enemy Passed: ${gameState.enemyPassed}`;
 	private simulateGameStart(
 		startingPlayer: "player" | "enemy" = "player"
 	): void {
-		const currentTurn = startingPlayer;
-		const phase =
-			startingPlayer === "player"
-				? GamePhase.PLAYER_TURN
-				: GamePhase.ENEMY_TURN;
+		console.log("Debug Panel: Server starting game and sending initial hands");
 
-		const gameStartResponse: ServerResponse = {
-			type: "game_start",
-			gameState: {
-				phase: phase,
-				currentTurn: currentTurn,
-				roundNumber: 1,
-				playerScore: 0,
-				enemyScore: 0,
-				playerPassed: false,
-				enemyPassed: false,
-				startingPlayer: startingPlayer,
-				playerHandSize: 0, // Will be updated when deck data is sent
-				enemyHandSize: 0,
-			},
-		};
-
-		console.log(
-			`Debug Panel: Simulating game start - ${startingPlayer} goes first`
-		);
-		this._gameStateManager.handleServerResponse(gameStartResponse);
-
-		// Also simulate deck data from server
-		this.simulateDeckData();
+		// Directly send deck data - this is the first and only message needed to start the game
+		this.simulateDeckData(startingPlayer);
 	}
 
-	private simulateDeckData(): void {
+	private simulateDeckData(
+		startingPlayer: "player" | "enemy" = "player"
+	): void {
 		// Simulate server-side deck generation
 		console.log("Debug Panel: Server generating decks and initial hands");
 
-		// Generate player's deck (server-side logic)
-		const playerDeckIds = [1, 2, 3, 4, 5, 6, 1, 2, 3]; // Mix of cards, duplicates allowed
+		// Generate player's full deck (server-side logic - HIDDEN from client)
+		const playerFullDeck = [1, 2, 3, 4, 5, 6, 1, 2, 3]; // Mix of cards, duplicates allowed
 
 		// Server decides initial hand size (typically 10 cards in Gwent)
 		const initialHandSize = 5; // Start with 5 cards for testing
 
-		// Player gets card IDs for their initial hand
-		const playerInitialHandIds = playerDeckIds.slice(0, initialHandSize);
+		// Server draws initial hand for player
+		const playerInitialHandIds = playerFullDeck.slice(0, initialHandSize);
 
-		// Remaining cards stay in player's deck
-		const remainingPlayerDeckIds = playerDeckIds.slice(initialHandSize);
+		// Remaining cards stay in server's memory (NOT sent to client)
+		const remainingPlayerDeckIds = playerFullDeck.slice(initialHandSize);
+		console.log(
+			"Debug Panel: Server keeps",
+			remainingPlayerDeckIds.length,
+			"deck cards hidden from client"
+		);
 
 		const deckDataResponse: ServerResponse = {
 			type: "deck_data",
-			playerHand: playerInitialHandIds, // Card IDs for player's hand
-			playerDeck: remainingPlayerDeckIds, // Remaining card IDs in player deck
+			playerHand: playerInitialHandIds, // Only send initial hand card IDs to client
+			// playerDeck: NOT SENT - server keeps deck cards secret
 			gameState: {
 				...this._gameStateManager.gameState,
+				phase: GamePhase.PLAYER_TURN, // Game starts when cards are distributed
+				startingPlayer: startingPlayer,
 				playerHandSize: initialHandSize,
 				enemyHandSize: initialHandSize,
 			},
 		};
 
 		console.log(
-			"Debug Panel: Sending initial hands - Player gets card IDs:",
+			"Debug Panel: Sending initial hand to client - Player gets card IDs:",
 			playerInitialHandIds
 		);
+		console.log("Debug Panel: Player deck cards remain hidden on server");
 		console.log("Debug Panel: Enemy gets", initialHandSize, "hidden cards");
 
 		this._gameStateManager.handleServerResponse(deckDataResponse);

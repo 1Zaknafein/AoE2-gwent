@@ -1,21 +1,15 @@
 import { PixiContainer, PixiSprite } from "../../plugins/engine";
 import { Manager, SceneInterface } from "../../entities/manager";
 import { CardContainerManager } from "../../entities/card";
-import {
-	Button,
-	ScoreDisplay,
-	DebugPanel,
-	MessageDisplay,
-} from "../components";
+import { ScoreDisplay, DebugPanel, MessageDisplay } from "../components";
 import { CardInteractionManager } from "../managers";
-import { CardDatabase } from "../../shared/database";
 import {
 	PlayerDisplayManager,
 	PlayerDisplayManagerConfig,
 } from "../../entities/player";
 import { Sprite } from "pixi.js";
 import { GameController } from "../../shared/game";
-import type { GameState, EnemyCardPlacedEvent } from "../../shared/game";
+import type { EnemyCardPlacedEvent } from "../../shared/game";
 
 export class GameScene extends PixiContainer implements SceneInterface {
 	private _gameBoard: Sprite;
@@ -25,13 +19,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	private _cardContainers: CardContainerManager;
 	private _cardInteractionManager: CardInteractionManager;
 	private _gameController: GameController;
-
-	private _multiTransferButton!: Button;
-	private _drawPlayerCardButton!: Button;
-	private _drawEnemyCardButton!: Button;
-
-	private _playerDeckIds: number[] = [];
-	private _enemyDeckIds: number[] = [];
 
 	private _scoreDisplay!: ScoreDisplay;
 	private _playerDisplayManager!: PlayerDisplayManager;
@@ -129,26 +116,11 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 		this._cardInteractionManager.setupContainerInteractivity();
 
-		// Setup event listeners for server-controlled deck management
-		this.setupDeckEventListeners();
-
 		this._cardInteractionManager.setupPlayerHandInteractions();
 
 		this.on("pointerup", () =>
 			this._cardInteractionManager.handleGlobalClick()
 		);
-	}
-
-	/**
-	 * Setup event listeners for server-controlled deck management
-	 */
-	private setupDeckEventListeners(): void {
-		// Listen for deck data from the server (via GameController)
-		this._gameController.on("deckDataReceived", (data: any) => {
-			console.log("GameScene: Received deck data from server", data);
-			// Cards are already added to containers by GameController
-			// Just log for confirmation
-		});
 	}
 
 	private createScoreDisplaySystem(): void {
@@ -221,10 +193,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.showMessage("Enemy passed their turn");
 		});
 
-		this._gameController.on("gameStateChanged", (gameState: GameState) => {
-			console.log("Game state changed in scene:", gameState);
-		});
-
 		// Try to connect to server (will fail gracefully for now)
 		this._gameController.connectToServer().then((connected) => {
 			if (connected) {
@@ -251,80 +219,13 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			textColor: "#ffffff",
 		});
 
-		// Position the message display at the center of the screen
 		this._messageDisplay.centerOn(Manager.width, Manager.height);
 
-		// Initially hidden
 		this._messageDisplay.visible = false;
 		this._messageDisplay.alpha = 0;
 
 		// Add to the scene (on top of everything else)
 		this.addChild(this._messageDisplay);
-	}
-
-	private async drawPlayerCard(): Promise<void> {
-		if (this._playerDeckIds.length === 0) {
-			return;
-		}
-
-		const cardId = this._playerDeckIds.shift();
-
-		if (cardId !== undefined) {
-			const cardData = CardDatabase.getCardById(cardId);
-			if (cardData) {
-				const deckPosition =
-					this._cardContainers.player.deck.getTopCardGlobalPosition();
-
-				await this._cardContainers.player.hand.addCardWithAnimation(
-					cardData,
-					deckPosition,
-					0.6
-				);
-			}
-		}
-	}
-
-	private async drawEnemyCard(): Promise<void> {
-		if (this._enemyDeckIds.length === 0) {
-			return;
-		}
-
-		const cardId = this._enemyDeckIds.shift();
-
-		if (cardId !== undefined) {
-			const cardData = CardDatabase.getCardById(cardId);
-			if (cardData) {
-				const deckPosition =
-					this._cardContainers.enemy.deck.getTopCardGlobalPosition();
-
-				await this._cardContainers.enemy.hand.addCardWithAnimation(
-					cardData,
-					deckPosition,
-					0.6
-				);
-			}
-		}
-	}
-
-	private async transferMultipleCards(): Promise<void> {
-		const cardsToTransfer = Math.min(
-			3,
-			this._cardContainers.player.hand.cardCount
-		);
-
-		for (let i = 0; i < cardsToTransfer; i++) {
-			// Add slight delay between each transfer (50ms)
-			if (i > 0) {
-				await new Promise((resolve) => setTimeout(resolve, 50));
-			}
-
-			if (this._cardContainers.player.hand.cardCount > 0) {
-				this._cardContainers.player.hand.transferCardTo(
-					0,
-					this._cardContainers.player.ranged
-				);
-			}
-		}
 	}
 
 	/**
@@ -351,7 +252,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	resize(width: number, height: number): void {
 		this.resizeAndCenter(width, height);
 
-		// Update message display position
 		if (this._messageDisplay) {
 			this._messageDisplay.centerOn(width, height);
 		}

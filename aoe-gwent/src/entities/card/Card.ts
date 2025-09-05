@@ -118,17 +118,12 @@ export class Card extends PixiContainer {
 	public updateCardData(newCardData: CardData): void {
 		this._cardData = newCardData;
 
-		// Update the card face texture
 		this._cardFace.texture = PixiSprite.from(newCardData.faceTexture).texture;
 
-		// Update the score
 		this._scoreText.text = newCardData.score.toString();
 
-		// Update the type icon
 		const iconTexture = `icon_${newCardData.type}`;
 		this._typeIcon.texture = PixiSprite.from(iconTexture).texture;
-
-		console.log(`Card updated to: ${newCardData.name}`);
 	}
 
 	/**

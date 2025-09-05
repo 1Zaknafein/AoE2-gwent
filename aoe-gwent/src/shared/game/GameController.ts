@@ -1,7 +1,7 @@
 import { EventEmitter } from "pixi.js";
 import { GameStateManager, ActionType } from "./GameStateManager";
 import { ServerAPI } from "../../api/ServerAPI";
-import { CardContainerManager } from "../../entities/card";
+import { CardContainer, CardContainerManager } from "../../entities/card";
 import { CardDatabase } from "../../shared/database";
 import { CardData, CardType } from "../../entities/card";
 
@@ -9,7 +9,7 @@ import { CardData, CardType } from "../../entities/card";
 export interface EnemyCardPlacedEvent {
 	cardData: CardData;
 	targetRow: "melee" | "ranged" | "siege";
-	container: any; // CardContainer type
+	container: CardContainer;
 }
 
 /**
@@ -39,13 +39,12 @@ export class GameController extends EventEmitter {
 
 		// Listen for game state changes
 		this._gameStateManager.on("gameStateChanged", (gameState) => {
-			console.log("Game state changed:", gameState);
 			this.emit("gameStateChanged", gameState);
 		});
 
 		// Listen for game start
 		this._gameStateManager.on("gameStarted", (gameState) => {
-			console.log("Game started:", gameState);
+			console.log("Game started");
 			this.emit("gameStarted", gameState);
 		});
 
@@ -260,8 +259,6 @@ export class GameController extends EventEmitter {
 	 * Handle deck data received from server
 	 */
 	private handleDeckDataReceived(data: any): void {
-		console.log("Handling deck data received:", data);
-
 		// Add player cards to hand (convert IDs to CardData)
 		if (data.playerHand && Array.isArray(data.playerHand)) {
 			const playerHand = this._cardContainers.player.hand;

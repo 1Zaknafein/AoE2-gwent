@@ -194,6 +194,52 @@ When the actual server is ready:
 - Card IDs are inferred from card names (simplified approach)
 - No network error handling or retry logic
 
+## Deck Management
+
+### Server-Side Deck Generation
+
+The server maintains full control over deck contents and card distribution:
+
+1. **Full Deck Generation**: Server generates complete decks for both players
+2. **Initial Hand Distribution**: Server draws initial hands from player decks
+3. **Hidden Information**: Only initial hand card IDs are sent to clients
+4. **Deck Privacy**: Remaining deck cards are kept secret on the server
+
+### Client-Side Deck Handling
+
+```typescript
+// Server response for game start - no separate game_start message needed
+interface ServerResponse {
+  type: "deck_data"; // First message from server starts the game
+  playerHand: number[]; // Only initial hand card IDs
+  gameState: GameState; // Complete game state to begin play
+  // playerDeck: NOT SENT - kept secret on server
+}
+```
+
+**Benefits:**
+- Prevents deck manipulation/cheating
+- Maintains game state integrity
+- Enables proper fog-of-war mechanics
+- Supports card draw randomization on server
+- Eliminates unnecessary round-trips (no separate "game starting" message)
+
+### Game Start Flow
+
+1. Server generates full decks for both players (hidden)
+2. Server draws initial hands from decks
+3. Server sends **single `deck_data` response** with:
+   - Player's initial hand card IDs
+   - Complete game state (ready to play)
+4. Game begins immediately when client receives deck data
+
+### Card Draw Flow
+
+1. Player requests card draw → Server
+2. Server draws from hidden deck
+3. Server sends only the drawn card ID to client
+4. Client receives and displays the new card
+
 ## Testing
 
 The debug panel provides comprehensive testing capabilities:

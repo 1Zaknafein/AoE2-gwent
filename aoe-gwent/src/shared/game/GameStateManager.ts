@@ -28,7 +28,7 @@ export interface GameState {
 }
 
 export interface ServerResponse {
-	type: "game_state_update" | "enemy_action" | "game_start" | "deck_data";
+	type: "game_state_update" | "enemy_action" | "deck_data";
 	gameState?: GameState;
 	action?: {
 		type: ActionType;
@@ -36,8 +36,8 @@ export interface ServerResponse {
 		targetRow?: "melee" | "ranged" | "siege";
 		playerId: "player" | "enemy";
 	};
-	playerDeck?: number[]; // Array of card IDs for player's deck
-	playerHand?: number[]; // Array of card IDs for player's initial hand
+	// playerDeck removed - server keeps deck cards hidden from client
+	playerHand?: number[]; // Array of card IDs for player's initial hand only
 }
 
 export interface PlayerAction {
@@ -75,12 +75,11 @@ export class GameStateManager extends EventEmitter {
 	 * Handle incoming server response
 	 */
 	public handleServerResponse(response: ServerResponse): void {
-		console.log("Received server response:", response);
+		console.log("\nReceived server response: ", response.type);
+
+		console.table(response.gameState);
 
 		switch (response.type) {
-			case "game_start":
-				this.handleGameStart(response);
-				break;
 			case "game_state_update":
 				this.handleGameStateUpdate(response);
 				break;
@@ -90,14 +89,6 @@ export class GameStateManager extends EventEmitter {
 			case "deck_data":
 				this.handleDeckData(response);
 				break;
-		}
-	}
-
-	private handleGameStart(response: ServerResponse): void {
-		if (response.gameState) {
-			this._gameState = response.gameState;
-			this._isConnected = true;
-			this.emit("gameStarted", this._gameState);
 		}
 	}
 
@@ -129,21 +120,27 @@ export class GameStateManager extends EventEmitter {
 	}
 
 	private handleDeckData(response: ServerResponse): void {
-		console.log("Received deck data from server");
-
 		// Calculate enemy hand size based on player hand size (they should be equal initially)
 		const enemyHandSize = response.playerHand ? response.playerHand.length : 5;
 
 		this.emit("deckDataReceived", {
-			playerDeck: response.playerDeck,
+			// playerDeck removed - server keeps deck cards hidden from client
 			playerHand: response.playerHand,
 			enemyHandSize: enemyHandSize, // Add enemy hand size for dummy cards
 		});
 
-		// Update game state if provided
+		// Update game state if provided - this is when the actual game begins
 		if (response.gameState) {
 			this._gameState = response.gameState;
+			this._isConnected = true;
 			this.emit("gameStateChanged", this._gameState);
+			this.emit(
+				"gameStarted",
+				"Game started - both players have received their cards"
+			);
+			console.log(
+				"Game started - deck data received and game state initialized"
+			);
 		}
 	}
 
