@@ -1,4 +1,4 @@
-import { Card, CardContainerManager } from "../../entities/card";
+import { Card, CardContainer, CardContainerManager } from "../../entities/card";
 import { gsap } from "gsap";
 import { GameController } from "../../shared/game";
 
@@ -196,7 +196,9 @@ export class CardInteractionManager {
 		}, 50);
 	}
 
-	private placeSelectedCard(targetContainer: any): void {
+	private async placeSelectedCard(
+		targetContainer: CardContainer
+	): Promise<void> {
 		if (!this._selectedCard) return;
 
 		// Block card placement if player cannot act
@@ -228,6 +230,7 @@ export class CardInteractionManager {
 
 		// Determine target row name
 		let targetRowName: "melee" | "ranged" | "siege" | null = null;
+
 		if (targetContainer === this._cardContainers.player.melee) {
 			targetRowName = "melee";
 		} else if (targetContainer === this._cardContainers.player.ranged) {
@@ -236,25 +239,28 @@ export class CardInteractionManager {
 			targetRowName = "siege";
 		}
 
-		// Send action to server if game controller is available and player can act
-		if (
-			this._gameController &&
-			targetRowName &&
-			this._gameController.canPlayerAct
-		) {
-			const cardId = this._selectedCard.cardData.id;
-
-			this._gameController
-				.sendPlayerAction(cardId, targetRowName)
-				.catch((error) => {
-					console.error("Failed to send player action:", error);
-				});
+		if (targetRowName === null) {
+			throw console.error("Invalid target container for card placement");
 		}
 
-		// Perform the card transfer
-		playerHand.transferCardTo(cardIndex, targetContainer);
+		// Store card reference temporarily during transfer to prevent it from being cleared
+		const cardToTransfer = this._selectedCard;
+		const cardId = cardToTransfer.cardData.id;
 
+		// Clear selected card immediately to prevent interference during animation
 		this._selectedCard = null;
+
+		await playerHand.transferCardTo(cardIndex, targetContainer);
+
+		if (!this._gameController) {
+			throw new Error("GameController not available");
+		}
+
+		this._gameController
+			.sendPlayerAction(cardId, targetRowName)
+			.catch((error) => {
+				console.error("Failed to send player action:", error);
+			});
 	}
 
 	public get selectedCard(): Card | null {

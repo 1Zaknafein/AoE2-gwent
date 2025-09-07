@@ -402,17 +402,19 @@ export class CardContainer extends PixiContainer {
 			// Calculate target scale relative to this container
 			const targetVisualScale = (baseCardScale * targetScale) / sourceScale;
 
+			const tweenDuration = 0.4;
+
 			const positionTween = gsap.to(cardToTransfer, {
 				x: targetLocalInSource.x,
 				y: targetLocalInSource.y,
-				duration: 0.4,
+				duration: tweenDuration,
 				ease: "power2.inOut",
 			});
 
 			const scaleTween = gsap.to(cardToTransfer.scale, {
 				x: targetVisualScale,
 				y: targetVisualScale,
-				duration: 0.4,
+				duration: tweenDuration,
 				ease: "power2.inOut",
 				onComplete: () => {
 					// Only now remove from source and add to target
