@@ -84,7 +84,7 @@ export class DebugPanel extends PixiContainer {
 			text: "Status: Waiting for game start",
 			style: {
 				fontFamily: "Arial",
-				fontSize: 10, // Smaller font size
+				fontSize: 10,
 				fill: 0xffffff,
 				wordWrap: true,
 				wordWrapWidth: this.PANEL_WIDTH - 20,
@@ -94,7 +94,6 @@ export class DebugPanel extends PixiContainer {
 		this._statusText.y = 90;
 		this.addChild(this._statusText);
 
-		// Create buttons - moved down to avoid overlap
 		this._startGameButton = new DebugButton(
 			"Start (Player)",
 			() => this.simulateGameStart("player"),
@@ -102,7 +101,7 @@ export class DebugPanel extends PixiContainer {
 			30
 		);
 		this._startGameButton.x = 20;
-		this._startGameButton.y = 200; // Moved from 130 to 200
+		this._startGameButton.y = 200;
 		this.addChild(this._startGameButton);
 
 		const startGameEnemyButton = new DebugButton(
@@ -112,18 +111,8 @@ export class DebugPanel extends PixiContainer {
 			30
 		);
 		startGameEnemyButton.x = 180;
-		startGameEnemyButton.y = 200; // Moved from 130 to 200
+		startGameEnemyButton.y = 200;
 		this.addChild(startGameEnemyButton);
-
-		this._switchTurnButton = new DebugButton(
-			"Switch Turn",
-			() => this.switchTurn(),
-			150,
-			30
-		);
-		this._switchTurnButton.x = 20;
-		this._switchTurnButton.y = 240; // Moved from 170 to 240
-		this.addChild(this._switchTurnButton);
 
 		this._enemyPlaceCardButton = new DebugButton(
 			"Enemy Place Card",
@@ -132,7 +121,7 @@ export class DebugPanel extends PixiContainer {
 			30
 		);
 		this._enemyPlaceCardButton.x = 180;
-		this._enemyPlaceCardButton.y = 240; // Moved from 170 to 240
+		this._enemyPlaceCardButton.y = 240;
 		this.addChild(this._enemyPlaceCardButton);
 
 		this._enemyPassTurnButton = new DebugButton(
@@ -142,27 +131,8 @@ export class DebugPanel extends PixiContainer {
 			30
 		);
 		this._enemyPassTurnButton.x = 20;
-		this._enemyPassTurnButton.y = 280; // Moved from 210 to 280
+		this._enemyPassTurnButton.y = 240;
 		this.addChild(this._enemyPassTurnButton);
-
-		// Create card selection buttons
-		this.createCardSelectionButtons();
-	}
-
-	private createCardSelectionButtons(): void {
-		const cardTypes = ["melee", "ranged", "siege"] as const;
-
-		cardTypes.forEach((rowType, index) => {
-			const button = new DebugButton(
-				`Enemy -> ${rowType.charAt(0).toUpperCase() + rowType.slice(1)}`,
-				() => this.simulateEnemyPlaceSpecificCard(rowType),
-				150,
-				25
-			);
-			button.x = 20 + (index % 2) * 160;
-			button.y = 320 + Math.floor(index / 2) * 35; // Moved from 250 to 320
-			this.addChild(button);
-		});
 	}
 
 	private setupEventListeners(): void {
@@ -301,8 +271,6 @@ Enemy Passed: ${gameState.enemyPassed}`;
 			},
 			gameState: {
 				...this._gameStateManager.gameState,
-				// Don't automatically switch turns - let the Switch Turn button handle that
-				// or implement proper turn logic based on game rules
 			},
 		};
 
