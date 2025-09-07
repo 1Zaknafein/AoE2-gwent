@@ -53,6 +53,7 @@ export interface PlayerAction {
 export class GameStateManager extends EventEmitter {
 	private _gameState: GameState;
 	private _isConnected: boolean = false;
+	private _showMessageCallback?: (message: string) => Promise<void>;
 
 	constructor() {
 		super();
@@ -72,19 +73,28 @@ export class GameStateManager extends EventEmitter {
 	}
 
 	/**
+	 * Set the message display callback
+	 */
+	public setMessageCallback(
+		callback: (message: string) => Promise<void>
+	): void {
+		this._showMessageCallback = callback;
+	}
+
+	/**
 	 * Handle incoming server response
 	 */
-	public handleServerResponse(response: ServerResponse): void {
+	public async handleServerResponse(response: ServerResponse): Promise<void> {
 		console.log("\nReceived server response: ", response.type);
 
 		console.table(response.gameState);
 
 		switch (response.type) {
 			case "game_state_update":
-				this.handleGameStateUpdate(response);
+				await this.handleGameStateUpdate(response);
 				break;
 			case "enemy_action":
-				this.handleEnemyAction(response);
+				await this.handleEnemyAction(response);
 				break;
 			case "deck_data":
 				this.handleDeckData(response);
@@ -92,9 +102,70 @@ export class GameStateManager extends EventEmitter {
 		}
 	}
 
-	private handleGameStateUpdate(response: ServerResponse): void {
+	/**
+	 * Show turn message if needed and await its completion
+	 */
+	private async showTurnMessage(
+		newGameState: GameState,
+		previousGameState: GameState
+	): Promise<void> {
+		if (!this._showMessageCallback) {
+			return; // No callback set, skip message display
+		}
+
+		// Check if it's a turn change to player
+		const currentPhase = previousGameState.phase;
+		const newPhase = newGameState.phase;
+
+		// Show enemy pass message first (if it happened)
+		if (newGameState.enemyPassed && !previousGameState.enemyPassed) {
+			await this._showMessageCallback("Opponent passed");
+		}
+
+		// Show "Your turn!" message when it becomes player's turn
+		if (
+			newPhase === GamePhase.PLAYER_TURN &&
+			currentPhase !== GamePhase.PLAYER_TURN
+		) {
+			await this._showMessageCallback("Your turn!");
+		}
+		// Show "Opponent's turn!" message when it becomes enemy's turn
+		else if (
+			newPhase === GamePhase.ENEMY_TURN &&
+			currentPhase !== GamePhase.ENEMY_TURN
+		) {
+			await this._showMessageCallback("Opponent's turn!");
+		}
+		// Show round end message
+		else if (
+			newPhase === GamePhase.ROUND_END &&
+			currentPhase !== GamePhase.ROUND_END
+		) {
+			const playerScore = newGameState.playerScore || 0;
+			const enemyScore = newGameState.enemyScore || 0;
+
+			let roundEndMessage = "";
+			if (playerScore > enemyScore) {
+				roundEndMessage = `Round ${newGameState.roundNumber} ends! You won!`;
+			} else if (enemyScore > playerScore) {
+				roundEndMessage = `Round ${newGameState.roundNumber} ends! You lost!`;
+			} else {
+				roundEndMessage = `Round ${newGameState.roundNumber} ends! It's a tie!`;
+			}
+
+			await this._showMessageCallback(roundEndMessage);
+		}
+	}
+
+	private async handleGameStateUpdate(response: ServerResponse): Promise<void> {
 		if (response.gameState) {
 			const previousPhase = this._gameState.phase;
+			const previousGameState = { ...this._gameState }; // Save previous state for comparison
+
+			// Show messages before updating state
+			await this.showTurnMessage(response.gameState, previousGameState);
+
+			// Now update the state
 			this._gameState = response.gameState;
 
 			this.emit("gameStateChanged", this._gameState);
@@ -106,13 +177,19 @@ export class GameStateManager extends EventEmitter {
 		}
 	}
 
-	private handleEnemyAction(response: ServerResponse): void {
+	private async handleEnemyAction(response: ServerResponse): Promise<void> {
 		if (response.action && response.action.playerId === "enemy") {
 			console.log("Enemy performed action:", response.action);
 			this.emit("enemyAction", response.action);
 
-			// Update game state if provided
+			// Update game state if provided - use the same message display logic
 			if (response.gameState) {
+				const previousGameState = { ...this._gameState }; // Save previous state for comparison
+
+				// Show messages before updating state (especially for enemy pass)
+				await this.showTurnMessage(response.gameState, previousGameState);
+
+				// Now update the state
 				this._gameState = response.gameState;
 				this.emit("gameStateChanged", this._gameState);
 			}

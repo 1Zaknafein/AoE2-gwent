@@ -1,5 +1,5 @@
 import { EventEmitter } from "pixi.js";
-import { GameStateManager, ActionType } from "./GameStateManager";
+import { GameStateManager, ActionType, GamePhase } from "./GameStateManager";
 import { ServerAPI } from "../../api/ServerAPI";
 import { CardContainer, CardContainerManager } from "../../entities/card";
 import { CardDatabase } from "../../shared/database";
@@ -28,26 +28,31 @@ export class GameController extends EventEmitter {
 		this._cardContainers = cardContainers;
 		this._gameStateManager = new GameStateManager();
 		this._serverAPI = new ServerAPI();
+		this._actionsBlocked = true;
 
 		this.setupEventListeners();
 	}
 
 	private setupEventListeners(): void {
-		// Listen for enemy actions from the game state manager
 		this._gameStateManager.on("enemyAction", (action) => {
 			this.handleEnemyAction(action);
 		});
 
-		// Listen for game state changes
 		this._gameStateManager.on("gameStateChanged", (gameState) => {
-			this.unblockActions();
+			if (
+				gameState.currentTurn === "player" &&
+				gameState.phase === GamePhase.PLAYER_TURN
+			) {
+				this.unblockActions();
+			} else {
+				this.blockActions();
+			}
+
 			this.emit("gameStateChanged", gameState);
 		});
 
-		// Listen for game start
 		this._gameStateManager.on("gameStarted", (gameState) => {
 			console.log("Game started");
-			this.unblockActions();
 			this.emit("gameStarted", gameState);
 		});
 
@@ -118,10 +123,6 @@ export class GameController extends EventEmitter {
 			return;
 		}
 
-		console.log(
-			`Enemy revealing and placing ${cardData.name} on ${targetRow} row`
-		);
-
 		// Reveal the card with flip animation
 		await dummyCard.revealCard(cardData);
 
@@ -140,7 +141,6 @@ export class GameController extends EventEmitter {
 	 * Handle enemy passing their turn
 	 */
 	private handleEnemyPassTurn(_action: any): void {
-		console.log("Enemy passed their turn");
 		this.emit("enemyPassedTurn");
 	}
 
@@ -223,7 +223,6 @@ export class GameController extends EventEmitter {
 				// Unblock actions if the request failed so player can retry
 				this.unblockActions();
 			}
-			// Note: Actions remain blocked until server responds with game state update
 		} catch (error) {
 			console.error("Error sending pass turn:", error);
 			// Unblock actions on error so player can retry
@@ -240,8 +239,8 @@ export class GameController extends EventEmitter {
 
 		if (connected) {
 			// Start listening for server messages
-			this._serverAPI.startListening((response) => {
-				this._gameStateManager.handleServerResponse(response);
+			this._serverAPI.startListening(async (response) => {
+				await this._gameStateManager.handleServerResponse(response);
 			});
 		}
 
@@ -317,6 +316,36 @@ export class GameController extends EventEmitter {
 			this._actionsBlocked = false;
 			this.emit("actionsUnblocked");
 		}
+	}
+
+	/**
+	 * Called by UI when message display is complete and ready to proceed
+	 */
+	public onUIReadyToProceed(): void {
+		this.unblockActions();
+	}
+
+	/**
+	 * Set the message display callback for the game state manager
+	 */
+	public setMessageCallback(
+		callback: (message: string) => Promise<void>
+	): void {
+		this._gameStateManager.setMessageCallback(callback);
+	}
+
+	/**
+	 * Manually block player actions (for UI coordination)
+	 */
+	public manuallyBlockActions(): void {
+		this.blockActions(); // Call private method
+	}
+
+	/**
+	 * Manually unblock player actions (for UI coordination)
+	 */
+	public manuallyUnblockActions(): void {
+		this.unblockActions(); // Call private method
 	}
 
 	/**

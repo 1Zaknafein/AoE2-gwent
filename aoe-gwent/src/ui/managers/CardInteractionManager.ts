@@ -81,6 +81,24 @@ export class CardInteractionManager {
 		card.on("pointerup", (event) => this.onCardClick(card, event));
 	}
 
+	/**
+	 * Update card interactivity based on current action state
+	 */
+	public updateCardInteractivity(): void {
+		const canAct = this._gameController
+			? this._gameController.canPlayerAct
+			: true;
+
+		// Update player hand cards
+		const playerHand = this._cardContainers.player.hand;
+		playerHand.setCardsInteractive(canAct);
+
+		// If actions are blocked, remove hover effects from selected card
+		if (!canAct && this._selectedCard) {
+			this.deselectCard();
+		}
+	}
+
 	private onCardHover(card: Card, isHovering: boolean): void {
 		// Only apply hover effects to cards in player hand
 		if (card.parent !== this._cardContainers.player.hand) return;

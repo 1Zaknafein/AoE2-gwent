@@ -45,9 +45,9 @@ export class MessageDisplay extends PixiContainer {
 	/**
 	 * Show a message with the specified text
 	 */
-	public showMessage(message: string): void {
+	public showMessage(message: string, onComplete?: () => void): void {
 		this.updateMessage(message);
-		this.show();
+		this.show(onComplete);
 	}
 
 	/**
@@ -60,7 +60,7 @@ export class MessageDisplay extends PixiContainer {
 	/**
 	 * Show the message display with fade-in animation (0.3s), display for 5s, then fade out
 	 */
-	public show(): void {
+	public show(onComplete?: () => void): void {
 		if (this._timeline) {
 			this._timeline.kill();
 		}
@@ -84,6 +84,9 @@ export class MessageDisplay extends PixiContainer {
 					ease: "power2.in",
 					onComplete: () => {
 						this.visible = false;
+						if (onComplete) {
+							onComplete();
+						}
 					},
 				},
 				"+=1.5"

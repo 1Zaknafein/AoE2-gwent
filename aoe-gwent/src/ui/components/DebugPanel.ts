@@ -8,12 +8,14 @@ import {
 } from "../../shared/game/GameStateManager";
 import { CardDatabase } from "../../shared/database";
 import { CardType } from "../../entities/card";
+import { GameController } from "../../shared/game/GameController";
 
 /**
  * Debug panel for testing server communication and enemy actions
  */
 export class DebugPanel extends PixiContainer {
 	private _gameStateManager: GameStateManager;
+	private _gameController: GameController;
 	private _isVisible: boolean = false;
 
 	// UI Elements
@@ -29,9 +31,10 @@ export class DebugPanel extends PixiContainer {
 	private readonly PANEL_WIDTH = 350;
 	private readonly PANEL_HEIGHT = 420; // Increased to accommodate all elements
 
-	constructor(gameStateManager: GameStateManager) {
+	constructor(gameController: GameController) {
 		super();
-		this._gameStateManager = gameStateManager;
+		this._gameController = gameController;
+		this._gameStateManager = gameController.gameStateManager;
 
 		this.createToggleButton();
 		this.createDebugPanel();
@@ -206,63 +209,15 @@ Enemy Passed: ${gameState.enemyPassed}`;
 		});
 	}
 
-	private simulateGameStart(
-		startingPlayer: "player" | "enemy" = "player"
-	): void {
-		console.log("Debug Panel: Server starting game and sending initial hands");
+	private simulateGameStart(startingPlayer: "player" | "enemy"): void {
+		const serverAPI = this._gameController.serverAPI;
 
-		// Directly send deck data - this is the first and only message needed to start the game
-		this.simulateDeckData(startingPlayer);
-	}
+		if (!serverAPI.isConnected) {
+			console.warn("Debug Panel: Server not connected");
+			return;
+		}
 
-	private simulateDeckData(
-		startingPlayer: "player" | "enemy" = "player"
-	): void {
-		// Simulate server-side deck generation
-		console.log("Debug Panel: Server generating decks and initial hands");
-
-		// Generate player's full deck (server-side logic - HIDDEN from client)
-		const playerFullDeck = [1, 2, 3, 4, 5, 6, 1, 2, 3]; // Mix of cards, duplicates allowed
-
-		// Server decides initial hand size (typically 10 cards in Gwent)
-		const initialHandSize = 5; // Start with 5 cards for testing
-
-		// Server draws initial hand for player
-		const playerInitialHandIds = playerFullDeck.slice(0, initialHandSize);
-
-		// Remaining cards stay in server's memory (NOT sent to client)
-		const remainingPlayerDeckIds = playerFullDeck.slice(initialHandSize);
-		console.log(
-			"Debug Panel: Server keeps",
-			remainingPlayerDeckIds.length,
-			"deck cards hidden from client"
-		);
-
-		const deckDataResponse: ServerResponse = {
-			type: "deck_data",
-			playerHand: playerInitialHandIds, // Only send initial hand card IDs to client
-			// playerDeck: NOT SENT - server keeps deck cards secret
-			gameState: {
-				...this._gameStateManager.gameState,
-				phase:
-					startingPlayer === "player"
-						? GamePhase.PLAYER_TURN
-						: GamePhase.ENEMY_TURN,
-				currentTurn: startingPlayer, // Set the current turn to match starting player
-				startingPlayer: startingPlayer,
-				playerHandSize: initialHandSize,
-				enemyHandSize: initialHandSize,
-			},
-		};
-
-		console.log(
-			"Debug Panel: Sending initial hand to client - Player gets card IDs:",
-			playerInitialHandIds
-		);
-		console.log("Debug Panel: Player deck cards remain hidden on server");
-		console.log("Debug Panel: Enemy gets", initialHandSize, "hidden cards");
-
-		this._gameStateManager.handleServerResponse(deckDataResponse);
+		serverAPI.requestGameStart(startingPlayer);
 	}
 
 	private switchTurn(): void {
@@ -280,37 +235,30 @@ Enemy Passed: ${gameState.enemyPassed}`;
 			},
 		};
 
-		console.log("Debug Panel: Switching turn to", newTurn);
 		this._gameStateManager.handleServerResponse(updateResponse);
 	}
 
 	private simulateEnemyPlaceCard(): void {
-		// Pick a random card from the database
-		const randomCardId = Math.floor(Math.random() * 6) + 1; // IDs 1-6
-		const cardData = CardDatabase.getCardById(randomCardId);
+		// Use the fake server to trigger enemy action instead of bypassing it
+		const serverAPI = this._gameController.serverAPI;
 
-		if (!cardData) {
-			console.error("Debug Panel: Could not find card with ID", randomCardId);
+		if (!serverAPI.isConnected) {
+			console.warn("Debug Panel: Server not connected");
 			return;
 		}
 
-		// Determine target row based on card type
-		let targetRow: "melee" | "ranged" | "siege";
-		switch (cardData.type) {
-			case CardType.MELEE:
-				targetRow = "melee";
-				break;
-			case CardType.RANGED:
-				targetRow = "ranged";
-				break;
-			case CardType.SIEGE:
-				targetRow = "siege";
-				break;
-			default:
-				targetRow = "melee";
+		const serverState = serverAPI.debugServerState;
+		if (!serverState || !serverState.isGameStarted) {
+			console.warn("Debug Panel: Game not started");
+			return;
 		}
 
-		this.simulateEnemyPlaceSpecificCard(targetRow, randomCardId);
+		if (serverState.gameState.currentTurn !== "enemy") {
+			console.warn("Debug Panel: Not enemy's turn");
+			return;
+		}
+
+		serverAPI.debugForceEnemyAction();
 	}
 
 	private simulateEnemyPlaceSpecificCard(
@@ -365,22 +313,25 @@ Enemy Passed: ${gameState.enemyPassed}`;
 	}
 
 	private simulateEnemyPassTurn(): void {
-		const enemyPassResponse: ServerResponse = {
-			type: "enemy_action",
-			action: {
-				type: ActionType.PASS_TURN,
-				playerId: "enemy",
-			},
-			gameState: {
-				...this._gameStateManager.gameState,
-				// Don't automatically switch turns - let the Switch Turn button handle that
-				// or implement proper turn logic based on game rules
-				enemyPassed: true,
-			},
-		};
+		const serverAPI = this._gameController.serverAPI;
 
-		console.log("Debug Panel: Enemy passing turn");
-		this._gameStateManager.handleServerResponse(enemyPassResponse);
+		if (!serverAPI.isConnected) {
+			console.warn("Debug Panel: Server not connected");
+			return;
+		}
+
+		const serverState = serverAPI.debugServerState;
+		if (!serverState || !serverState.isGameStarted) {
+			console.warn("Debug Panel: Game not started");
+			return;
+		}
+
+		if (serverState.gameState.currentTurn !== "enemy") {
+			console.warn("Debug Panel: Not enemy's turn");
+			return;
+		}
+
+		serverAPI.debugForceEnemyPass();
 	}
 
 	public setPosition(x: number, y: number): void {
