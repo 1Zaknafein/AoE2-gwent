@@ -124,6 +124,8 @@ export class GameFlowManager extends EventEmitter {
 			const previousGameState = { ...this._gameState };
 			this._gameState = response.gameState;
 
+			this.emit("gameStateUpdated", this._gameState);
+
 			const messages = this.determineMessagesForStateChange(
 				previousGameState,
 				this._gameState
@@ -141,6 +143,8 @@ export class GameFlowManager extends EventEmitter {
 
 		const previousGameState = { ...this._gameState };
 		this._gameState = response.gameState;
+
+		this.emit("gameStateUpdated", this._gameState);
 
 		const messages = this.determineMessagesForStateChange(
 			previousGameState,
@@ -161,6 +165,8 @@ export class GameFlowManager extends EventEmitter {
 		if (response.gameState) {
 			const previousGameState = { ...this._gameState };
 			this._gameState = response.gameState;
+
+			this.emit("gameStateUpdated", this._gameState);
 
 			const messages = this.determineMessagesForStateChange(
 				previousGameState,

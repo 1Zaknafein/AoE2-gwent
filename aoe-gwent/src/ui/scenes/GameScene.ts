@@ -213,6 +213,11 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			}
 		});
 
+		// Listen for game state updates (for score updates)
+		this._gameController.on("gameStateUpdated", (gameState) => {
+			this.updateScoresFromGameState(gameState);
+		});
+
 		// Try to connect to server
 		this._gameController.connectToServer().then((connected) => {
 			if (connected) {
@@ -360,6 +365,36 @@ export class GameScene extends PixiContainer implements SceneInterface {
 				card.showBack();
 			});
 		}
+	}
+
+	/**
+	 * Validate client scores against server scores
+	 */
+	private updateScoresFromGameState(gameState: GameState): void {
+		// Get current client-calculated scores
+		const clientPlayerScore = this._scoreDisplay.getCurrentPlayerScore();
+		const clientEnemyScore = this._scoreDisplay.getCurrentEnemyScore();
+
+		// Get server-authoritative scores
+		const serverPlayerScore = gameState.playerScore || 0;
+		const serverEnemyScore = gameState.enemyScore || 0;
+
+		// Validate scores match
+		if (clientPlayerScore !== serverPlayerScore) {
+			throw new Error(
+				`Score mismatch for player! Client: ${clientPlayerScore}, Server: ${serverPlayerScore}`
+			);
+		}
+
+		if (clientEnemyScore !== serverEnemyScore) {
+			throw new Error(
+				`Score mismatch for enemy! Client: ${clientEnemyScore}, Server: ${serverEnemyScore}`
+			);
+		}
+
+		console.log(
+			`[GameScene] Score validation passed - Player: ${serverPlayerScore}, Enemy: ${serverEnemyScore}`
+		);
 	}
 
 	update(_framesPassed: number): void {}

@@ -5,7 +5,7 @@ import { Text, TextStyle } from "pixi.js";
 export class ScoreDisplay extends PixiContainer {
 	private _scoreTextStyle: TextStyle;
 
-	// Text elements
+	// Row score text elements
 	private _playerMeleeScoreText: Text;
 	private _playerRangedScoreText: Text;
 	private _playerSiegeScoreText: Text;
@@ -104,5 +104,22 @@ export class ScoreDisplay extends PixiContainer {
 
 	public updateEnemySiegeScore(score: number): void {
 		this._enemySiegeScoreText.text = score.toString();
+	}
+
+	/**
+	 * Get current total score for validation against server
+	 */
+	public getCurrentPlayerScore(): number {
+		const meleeScore = parseInt(this._playerMeleeScoreText.text) || 0;
+		const rangedScore = parseInt(this._playerRangedScoreText.text) || 0;
+		const siegeScore = parseInt(this._playerSiegeScoreText.text) || 0;
+		return meleeScore + rangedScore + siegeScore;
+	}
+
+	public getCurrentEnemyScore(): number {
+		const meleeScore = parseInt(this._enemyMeleeScoreText.text) || 0;
+		const rangedScore = parseInt(this._enemyRangedScoreText.text) || 0;
+		const siegeScore = parseInt(this._enemySiegeScoreText.text) || 0;
+		return meleeScore + rangedScore + siegeScore;
 	}
 }

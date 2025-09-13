@@ -278,6 +278,8 @@ export class ServerAPI {
 			`Fake server: Player placed card ${action.cardId} on ${action.targetRow} row`
 		);
 
+		this.updateCurrentRoundScores();
+
 		this._fakeServerState.gameState.playerPassed = false;
 
 		if (this._fakeServerState.gameState.enemyPassed) {
@@ -383,6 +385,8 @@ export class ServerAPI {
 		console.log(
 			`Fake server: Enemy played card ${randomCard} on ${targetRow} row`
 		);
+
+		this.updateCurrentRoundScores();
 
 		// Enemy placed a card, so they are no longer passed
 		this._fakeServerState.gameState.enemyPassed = false;
@@ -659,5 +663,27 @@ export class ServerAPI {
 	 */
 	public get debugServerState(): FakeServerState | null {
 		return this._fakeServerState;
+	}
+
+	/**
+	 * Update current round scores based on cards on the board
+	 */
+	private updateCurrentRoundScores(): void {
+		if (!this._fakeServerState) return;
+
+		const playerScore = this.calculateBoardScore(
+			this._fakeServerState.playerBoard
+		);
+
+		const enemyScore = this.calculateBoardScore(
+			this._fakeServerState.enemyBoard
+		);
+
+		this._fakeServerState.gameState.playerScore = playerScore;
+		this._fakeServerState.gameState.enemyScore = enemyScore;
+
+		console.log(
+			`[ServerAPI] Updated scores - Player: ${playerScore}, Enemy: ${enemyScore}`
+		);
 	}
 }
