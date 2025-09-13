@@ -144,7 +144,7 @@ export class GameController extends EventEmitter {
 	}
 
 	/**
-	 * Set the message display callback - now uses improved system
+	 * Set the message display callback.
 	 */
 	public setMessageCallback(
 		callback: (message: string) => Promise<void>

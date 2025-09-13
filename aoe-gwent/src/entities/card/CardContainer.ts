@@ -3,6 +3,11 @@ import { PixiContainer } from "../../plugins/engine";
 import { Card, CardData, CardType } from "../card";
 import { gsap } from "gsap";
 
+export enum CardContainerLayoutType {
+	SPREAD = "spread",
+	STACK = "stack",
+}
+
 export class CardContainer extends PixiContainer {
 	private _cards: Card[] = [];
 	private _maxWidth: number;
@@ -13,18 +18,26 @@ export class CardContainer extends PixiContainer {
 	private _isContainerInteractive: boolean = false;
 	private _areCardsInteractive: boolean = true;
 	private _containerType: CardType | null = null;
+	private _layoutType: CardContainerLayoutType = CardContainerLayoutType.SPREAD;
 
 	/**
 	 * Create a new CardContainer.
 	 * @param maxWidth Maximum width of the container
 	 * @param label Label for the container.
 	 * @param containerType Optional type restriction for this container
+	 * @param layoutType Optional layout type for card positioning behavior
 	 */
-	constructor(maxWidth: number, label: string, containerType?: CardType) {
+	constructor(
+		maxWidth: number,
+		label: string,
+		containerType?: CardType,
+		layoutType?: CardContainerLayoutType
+	) {
 		super();
 		this._maxWidth = maxWidth;
 		this.label = label;
 		this._containerType = containerType || null;
+		this._layoutType = layoutType || CardContainerLayoutType.SPREAD;
 
 		this.createBoundsRect();
 	}
@@ -476,12 +489,117 @@ export class CardContainer extends PixiContainer {
 	}
 
 	/**
+	 * Transfer all cards from this container to a target container with batch animation
+	 */
+	public async transferAllCardsTo(
+		targetContainer: CardContainer
+	): Promise<void> {
+		if (this._cards.length === 0) return;
+
+		const cardsToTransfer = [...this._cards];
+		const sourceScale = this.scale.x;
+		const targetScale = targetContainer.scale.x;
+		const baseCardScale = 1;
+
+		const targetVisualScale = (baseCardScale * targetScale) / sourceScale;
+
+		const targetPosition = targetContainer.toGlobal({ x: 0, y: 0 });
+		const targetLocalInSource = this.toLocal(targetPosition);
+
+		this._cards = [];
+
+		cardsToTransfer.forEach((card) => {
+			this.emit("cardRemoved", { card, container: this });
+		});
+
+		const animationPromises = cardsToTransfer.map((card, index) => {
+			return new Promise<void>((resolve) => {
+				// Disable card interactivity during animation
+				card.eventMode = "none";
+				card.cursor = "default";
+
+				const delay = index * 0.05; // 50ms stagger between cards
+				const duration = 0.6;
+
+				const positionTween = gsap.to(card, {
+					x: targetLocalInSource.x,
+					y: targetLocalInSource.y,
+					duration: duration,
+					delay: delay,
+					ease: "power2.inOut",
+				});
+
+				const scaleTween = gsap.to(card.scale, {
+					x: targetVisualScale,
+					y: targetVisualScale,
+					duration: duration,
+					delay: delay,
+					ease: "power2.inOut",
+					onComplete: () => {
+						// Remove from source container
+						this.removeChild(card);
+
+						// Add to target container
+						targetContainer._cards.push(card);
+						targetContainer.addChild(card);
+
+						// Reset card properties for target container
+						card.x = 0;
+						card.y = 0;
+						card.scale.set(baseCardScale);
+
+						// Re-enable interactivity based on target container settings
+						card.eventMode = targetContainer._areCardsInteractive
+							? "static"
+							: "none";
+						card.cursor = targetContainer._areCardsInteractive
+							? "pointer"
+							: "default";
+
+						targetContainer.emit("cardAdded", {
+							card,
+							container: targetContainer,
+						});
+
+						// Remove the animations from both containers' active transfers
+						this._activeTransfers.delete(positionTween);
+						this._activeTransfers.delete(scaleTween);
+						targetContainer._activeTransfers.delete(positionTween);
+						targetContainer._activeTransfers.delete(scaleTween);
+
+						resolve();
+					},
+				});
+
+				// Track active transfers
+				this._activeTransfers.add(positionTween);
+				this._activeTransfers.add(scaleTween);
+				targetContainer._activeTransfers.add(positionTween);
+				targetContainer._activeTransfers.add(scaleTween);
+			});
+		});
+
+		await Promise.all(animationPromises);
+
+		this.updateCardPositions();
+		targetContainer.updateCardPositions();
+	}
+
+	/**
 	 * Update card positions within the container.
 	 * Cards will be spaced evenly, and if they exceed maxWidth, they will overlap.
 	 */
 	private updateCardPositions(): void {
 		if (this._cards.length === 0) return;
 		if (this._isAnimating) return;
+
+		if (this._layoutType === CardContainerLayoutType.STACK) {
+			this._cards.forEach((card) => {
+				card.x = 0;
+				card.y = 0;
+			});
+			return;
+		}
 
 		this._isAnimating = true;
 
@@ -536,7 +654,6 @@ export class CardContainer extends PixiContainer {
 					card.y = 0;
 					resolve();
 				} else {
-					// Animate to target position
 					gsap.to(card, {
 						x: targetX,
 						y: 0,

@@ -1,6 +1,7 @@
 import { PixiContainer, PixiSprite, PixiText } from "../../plugins/engine";
 import { DebugButton } from "../components";
 import { GameController } from "../../shared/game";
+import { Graphics, Sprite, Texture } from "pixi.js";
 
 /**
  * Debug Panel for testing game functionality with fake server
@@ -40,9 +41,12 @@ export class DebugPanel extends PixiContainer {
 	}
 
 	private createDebugPanel(): void {
-		this._background = PixiSprite.from("rgba(0,0,0,0.8)");
-		this._background.width = this.PANEL_WIDTH;
-		this._background.height = this.PANEL_HEIGHT;
+		this._background = new Sprite();
+		this._background.texture = Texture.WHITE;
+		this._background.tint = "#000000";
+		this._background.alpha = 0.5;
+		this._background.width = this.PANEL_WIDTH - 50;
+		this._background.height = 320;
 		this._background.position.set(10, 50);
 		this.addChild(this._background);
 

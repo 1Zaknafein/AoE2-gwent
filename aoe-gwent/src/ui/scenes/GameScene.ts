@@ -186,10 +186,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	}
 
 	private setupGameControllerEvents(): void {
-		this._gameController.on("enemyCardPlaced", (data: EnemyCardPlacedEvent) => {
-			console.log("Enemy placed card:", data);
-		});
-
 		this._gameController.on("flowStateChanged", (data) => {
 			const { gameState } = data;
 
@@ -218,6 +214,12 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.updateScoresFromGameState(gameState);
 		});
 
+		this._gameController.on("roundEnded", () => {
+			this.discardAllPlayingCards().catch((error) => {
+				console.error("Error during card discard animation:", error);
+			});
+		});
+
 		// Try to connect to server
 		this._gameController.connectToServer().then((connected) => {
 			if (connected) {
@@ -237,7 +239,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		}
 	}
 
-	private handleRoundEnd(gameState: GameState): void {
+	private handleRoundEnd(_gameState: GameState): void {
 		//TODO Handle any UI-specific round end logic here if needed
 	}
 
@@ -279,6 +281,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		return new Promise((resolve) => {
 			if (this._messageDisplay) {
 				this._messageDisplay.showMessage(message);
+
 				// MessageDisplay shows for 2.5s total (0.5s fade in + 1.5s display + 0.5s fade out)
 				setTimeout(() => {
 					resolve();
@@ -395,6 +398,34 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		console.log(
 			`[GameScene] Score validation passed - Player: ${serverPlayerScore}, Enemy: ${serverEnemyScore}`
 		);
+	}
+
+	/**
+	 * Animate all cards from playing rows (melee, ranged, siege) to their respective discard containers
+	 */
+	private async discardAllPlayingCards(): Promise<void> {
+		const { player, enemy } = this._cardContainers;
+
+		const discardPromises: Promise<void>[] = [];
+
+		// Player cards: batch transfer from all playing containers to player discard
+		const playerPlayingContainers = [player.melee, player.ranged, player.siege];
+		for (const container of playerPlayingContainers) {
+			if (container.cardCount > 0) {
+				discardPromises.push(container.transferAllCardsTo(player.discard));
+			}
+		}
+
+		// Enemy cards: batch transfer from all playing containers to enemy discard
+		const enemyPlayingContainers = [enemy.melee, enemy.ranged, enemy.siege];
+		for (const container of enemyPlayingContainers) {
+			if (container.cardCount > 0) {
+				discardPromises.push(container.transferAllCardsTo(enemy.discard));
+			}
+		}
+
+		// Wait for all animations to complete
+		await Promise.all(discardPromises);
 	}
 
 	update(_framesPassed: number): void {}

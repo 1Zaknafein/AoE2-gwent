@@ -17,6 +17,8 @@ interface FakeServerState {
 	enemyHand: number[];
 	playerBoard: { melee: number[]; ranged: number[]; siege: number[] };
 	enemyBoard: { melee: number[]; ranged: number[]; siege: number[] };
+	playerDiscard: number[];
+	enemyDiscard: number[];
 	isGameStarted: boolean;
 }
 
@@ -144,6 +146,8 @@ export class ServerAPI {
 			enemyHand: enemyHand,
 			playerBoard: { melee: [], ranged: [], siege: [] },
 			enemyBoard: { melee: [], ranged: [], siege: [] },
+			playerDiscard: [],
+			enemyDiscard: [],
 			isGameStarted: false,
 		};
 
@@ -426,7 +430,6 @@ export class ServerAPI {
 		if (!this._fakeServerState || !this._messageListener) return;
 
 		this._fakeServerState.gameState.enemyPassed = true;
-		console.log("Fake server: Enemy passed");
 
 		// Check if player has also passed
 		if (this._fakeServerState.gameState.playerPassed) {
@@ -447,8 +450,6 @@ export class ServerAPI {
 			},
 			gameState: { ...this._fakeServerState.gameState },
 		});
-
-		console.log("Fake server: Enemy passed, turn switched to player");
 	}
 
 	/**
@@ -506,6 +507,11 @@ export class ServerAPI {
 			type: "game_state_update",
 			gameState: { ...this._fakeServerState.gameState },
 		});
+
+		// Clear the playing boards after the round ends
+		setTimeout(() => {
+			this.clearPlayingBoards();
+		}, 100);
 
 		// TODO: Check if game should end (best of 3 rounds)
 		// For now, just log the current score
@@ -654,7 +660,6 @@ export class ServerAPI {
 			return;
 		}
 
-		console.log("Debug: Forcing enemy pass");
 		this.executeEnemyPass();
 	}
 
@@ -684,6 +689,49 @@ export class ServerAPI {
 
 		console.log(
 			`[ServerAPI] Updated scores - Player: ${playerScore}, Enemy: ${enemyScore}`
+		);
+	}
+
+	/**
+	 * Move all cards from playing boards to discard piles
+	 */
+	private clearPlayingBoards(): void {
+		if (!this._fakeServerState) return;
+
+		console.log(
+			"[ServerAPI] Moving playing board cards to discard after round end"
+		);
+
+		// Move player board cards to player discard
+		const playerCards = [
+			...this._fakeServerState.playerBoard.melee,
+			...this._fakeServerState.playerBoard.ranged,
+			...this._fakeServerState.playerBoard.siege,
+		];
+		this._fakeServerState.playerDiscard.push(...playerCards);
+
+		// Move enemy board cards to enemy discard
+		const enemyCards = [
+			...this._fakeServerState.enemyBoard.melee,
+			...this._fakeServerState.enemyBoard.ranged,
+			...this._fakeServerState.enemyBoard.siege,
+		];
+		this._fakeServerState.enemyDiscard.push(...enemyCards);
+
+		// Clear the playing boards
+		this._fakeServerState.playerBoard.melee = [];
+		this._fakeServerState.playerBoard.ranged = [];
+		this._fakeServerState.playerBoard.siege = [];
+
+		this._fakeServerState.enemyBoard.melee = [];
+		this._fakeServerState.enemyBoard.ranged = [];
+		this._fakeServerState.enemyBoard.siege = [];
+
+		console.log(
+			`[ServerAPI] Cards moved to discard - Player: ${playerCards.length}, Enemy: ${enemyCards.length}`
+		);
+		console.log(
+			`[ServerAPI] Total discard piles - Player: ${this._fakeServerState.playerDiscard.length}, Enemy: ${this._fakeServerState.enemyDiscard.length}`
 		);
 	}
 }
