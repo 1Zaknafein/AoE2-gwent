@@ -2,18 +2,17 @@ import { Text, TextStyle } from "pixi.js";
 import { PixiContainer, PixiGraphics } from "../../plugins/engine";
 import { Manager, SceneInterface } from "../../entities/manager";
 import { PlayingRowContainer, HandContainer, CardContainer, CardContainerLayoutType } from "../../entities/card";
-import { Card } from "../../entities/card/Card";
 import { CardType } from "../../shared/types/CardTypes";
 import { CardData } from "../../shared/types/CardData";
 import { Deck } from "../../entities/deck";
-import { gsap } from "gsap";
+import { TestBoardInteractionManager } from "./TestBoardInteractionManager";
+import { PlayerDisplayManager, PlayerDisplayManagerConfig } from "../../entities/player";
 
 /**
  * Standalone test board scene for testing card interactions without server
  * Mimics Gwent-style board with 3 rows per player (Melee, Ranged, Siege)
  */
 export class TestBoardScene extends PixiContainer implements SceneInterface {
-	// Board containers (using specialized PlayingRowContainer)
 	private _opponentMeleeRow!: PlayingRowContainer;
 	private _opponentRangedRow!: PlayingRowContainer;
 	private _opponentSiegeRow!: PlayingRowContainer;
@@ -22,24 +21,23 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 	private playerRangedRow!: PlayingRowContainer;
 	private playerSiegeRow!: PlayingRowContainer;
 
-	// Hand containers (using specialized HandContainer)
 	private playerHand!: HandContainer;
 	private opponentHand!: HandContainer;
 
-	// Weather row (shared between players)
 	private weatherRow!: CardContainer;
 
-	// Discard piles
 	private playerDiscard!: CardContainer;
 	private opponentDiscard!: CardContainer;
 
-	// Decks
 	private playerDeck!: Deck;
 	private opponentDeck!: Deck;
 
 	// Main game board container (everything goes inside this)
 	private gameBoard!: PixiContainer;
 	private background!: PixiGraphics;
+
+	private interactionManager!: TestBoardInteractionManager;
+	private playerDisplayManager!: PlayerDisplayManager;
 
 	// Layout constants (based on 16:9 aspect ratio, ~2400x1350 internal resolution)
 	private readonly BOARD_WIDTH = 2400;
@@ -48,17 +46,12 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 	private readonly HAND_HEIGHT = 180;
 	private readonly LEFT_MARGIN = 450; // Space for player displays and weather
 	private readonly RIGHT_MARGIN = 350; // Space for deck/discard
-	
-	// Selection state (click-to-select system like GameScene)
-	private selectedCard: Card | null = null;
-	private cardClickInProgress: boolean = false;
 
 	constructor() {
 		super();
 		this.interactive = true;
 		this.label = "test_board_scene";
 
-		// Create game board container (like GameScene does)
 		this.gameBoard = new PixiContainer();
 		this.gameBoard.label = "game_board";
 		this.addChild(this.gameBoard);
@@ -69,23 +62,29 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		this.createDiscardPiles();
 		this.createDecks();
 		this.createHands();
+		this.createPlayerDisplaySystem();
 		this.createTestCards();
 		this.createBackButton();
 
-		// Global click handler for deselecting
-		this.on('pointerup', () => this.handleGlobalClick());
+		this.interactionManager = new TestBoardInteractionManager(
+			this.playerHand,
+			this.playerMeleeRow,
+			this.playerRangedRow,
+			this.playerSiegeRow
+		);
 
-		// Initial resize
+		this.interactionManager.setupPlayerHandInteractions();
+		this.interactionManager.setupRowInteractions();
+
+		this.on('pointerup', () => this.interactionManager.handleGlobalClick());
+
 		this.resizeAndCenter(Manager.width, Manager.height);
 
-		console.log("🎮 Test Board Scene initialized");
 	}
 
 	private createBackground(): void {
 		this.background = new PixiGraphics();
 		
-		// AOE2-themed background - will be resized to cover full screen in resize()
-		// Make it very large initially to ensure coverage
 		this.background.rect(0, 0, 10000, 10000);
 		this.background.fill({ color: 0x1a1410 });
 		
@@ -96,8 +95,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		const centerX = this.BOARD_WIDTH / 2;
 		const playAreaWidth = this.BOARD_WIDTH - this.LEFT_MARGIN - this.RIGHT_MARGIN;
 		
-		// Fixed Y positions - better spacing to prevent overlap
-		// Opponent rows (top - starting lower with proper spacing)
 		this._opponentSiegeRow = new PlayingRowContainer({
 			width: playAreaWidth,
 			height: this.ROW_HEIGHT,
@@ -164,9 +161,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		});
 		this.playerSiegeRow.position.set(centerX, 1070);
 		this.gameBoard.addChild(this.playerSiegeRow);
-		
-		// Setup row click handlers
-		this.setupRowInteractions();
 	}
 
 	private createDividerWithFade(centerX: number, y: number, width: number): void {
@@ -203,7 +197,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		const centerX = this.BOARD_WIDTH / 2;
 		const handWidth = this.BOARD_WIDTH - this.LEFT_MARGIN - this.RIGHT_MARGIN;
 
-		// Opponent hand (top)
 		const opponentHandY = 110;
 		this.opponentHand = new HandContainer({
 			width: handWidth,
@@ -218,7 +211,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		this.opponentHand.scale.set(1.0);
 		this.gameBoard.addChild(this.opponentHand);
 
-		// Player hand (bottom)
 		const playerHandY = 1240;
 		this.playerHand = new HandContainer({
 			width: handWidth,
@@ -234,10 +226,63 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		this.gameBoard.addChild(this.playerHand);
 	}
 
+	private createPlayerDisplaySystem(): void {
+		const config: PlayerDisplayManagerConfig = {
+			playerName: "PLAYER",
+			enemyName: "OPPONENT",
+			playerPosition: { x: -20, y: 1050 },
+			enemyPosition: { x: -20, y: 40 },
+		};
+
+		this.playerDisplayManager = new PlayerDisplayManager(config);
+		this.gameBoard.addChild(this.playerDisplayManager);
+
+		const playerContainers = [
+			this.playerMeleeRow,
+			this.playerRangedRow,
+			this.playerSiegeRow,
+		];
+		const opponentContainers = [
+			this._opponentMeleeRow,
+			this._opponentRangedRow,
+			this._opponentSiegeRow,
+		];
+
+		this.playerDisplayManager.setupScoreTracking(
+			playerContainers,
+			opponentContainers
+		);
+
+		this.setupHandCountTracking();
+		this.updatePlayerDisplayHandCounts();
+
+		this.playerDisplayManager.positionDisplayElements();
+	}
+
+	private setupHandCountTracking(): void {
+		const updateHandCounts = () => this.updatePlayerDisplayHandCounts();
+
+		this.playerHand.on("cardAdded", updateHandCounts);
+		this.playerHand.on("cardRemoved", updateHandCounts);
+		this.opponentHand.on("cardAdded", updateHandCounts);
+		this.opponentHand.on("cardRemoved", updateHandCounts);
+	}
+
+	private updatePlayerDisplayHandCounts(): void {
+		if (this.playerDisplayManager) {
+			const playerHandCount = this.playerHand.cardCount;
+			const opponentHandCount = this.opponentHand.cardCount;
+			this.playerDisplayManager.updateHandCounts(
+				playerHandCount,
+				opponentHandCount
+			);
+		}
+	}
+
 	private createWeatherRow(): void {
-		const weatherX = 150; 
+		const weatherX = 200; 
 		const weatherY = this.BOARD_HEIGHT / 2;
-		const weatherWidth = 400; 
+		const weatherWidth = 350; 
 		const weatherHeight = this.ROW_HEIGHT; 
 
 		this.weatherRow = new CardContainer(
@@ -286,7 +331,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		const discardWidth = 130; 
 		const discardHeight = 175; 
 
-		// Player discard (bottom right)
 		this.playerDiscard = new CardContainer(
 			discardWidth,
 			"player_discard",
@@ -300,7 +344,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		this.playerDiscard.setCardsInteractive(false);
 		this.gameBoard.addChild(this.playerDiscard);
 
-		// Opponent discard (top right)
 		this.opponentDiscard = new CardContainer(
 			discardWidth,
 			"opponent_discard",
@@ -323,7 +366,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		bg.rect(bgX, bgY, width, height);
 		bg.fill({ color: 0x2a2013, alpha: 0.3 });
 		
-		// Border
 		bg.stroke({ color: 0x8b6914, width: 3, alpha: 0.6 });
 		bg.rect(bgX + 3, bgY + 3, width - 6, height - 6);
 		bg.stroke({ color: 0xd4af37, width: 2, alpha: 0.4 });
@@ -334,13 +376,11 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 	private createDecks(): void {
 		const boardWidth = this.BOARD_WIDTH;
 
-		// Player deck (bottom right, near discard)
 		this.playerDeck = new Deck();
 		this.playerDeck.setPosition(boardWidth - 125, this.BOARD_HEIGHT - 105);
 		this.playerDeck.scale.set(0.75);
 		this.gameBoard.addChild(this.playerDeck);
 
-		// Opponent deck (top right, near discard)
 		this.opponentDeck = new Deck();
 		this.opponentDeck.setPosition(boardWidth - 125, 115);
 		this.opponentDeck.scale.set(0.75);
@@ -348,8 +388,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 	}
 
 	private createTestCards(): void {
-		// Test card data - matching AOE2 units
-		// Valid IDs: 1=knight, 2=crossbowman, 3=mangonel, 4=light_cavalry, 5=teutonic_knight, 6=archer
 		const testPlayerCards: CardData[] = [
 			{ id: 1, name: "Knight", score: 8, type: CardType.MELEE },
 			{ id: 2, name: "Crossbowman", score: 6, type: CardType.RANGED },
@@ -358,10 +396,9 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 			{ id: 6, name: "Archer", score: 4, type: CardType.RANGED },
 		];
 
-		// Add more knights (reusing ID 1 for knight texture)
 		for (let i = 0; i < 12; i++) {
 			testPlayerCards.push({
-				id: 1, // Use knight texture
+				id: 1,
 				name: `Knight`,
 				score: Math.floor(Math.random() * 10) + 1,
 				type: CardType.MELEE
@@ -373,185 +410,9 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 			{ id: 6, name: "Archer", score: 6, type: CardType.RANGED },
 		];
 
-		// Add cards to player hand
 		this.playerHand.addCardsBatch(testPlayerCards);
-		
-		// Set up click interactions for each card in player hand
-		this.playerHand.getAllCards().forEach((card) => {
-			this.setupCardInteractions(card);
-		});
 
-		// Add cards to opponent hand (non-interactive)
 		this.opponentHand.addCardsBatch(testOpponentCards);
-	}
-
-	private setupCardInteractions(card: Card): void {
-		card.on('pointerenter', () => this.onCardHover(card, true));
-		card.on('pointerleave', () => this.onCardHover(card, false));
-		card.on('pointerup', (event) => this.onCardClick(card, event));
-	}
-
-	private setupRowInteractions(): void {
-		const playableRows = [
-			this.playerMeleeRow,
-			this.playerRangedRow,
-			this.playerSiegeRow,
-		];
-
-		playableRows.forEach((row) => {
-			row.setContainerInteractive(true);
-			row.on('containerClick', () => {
-				if (this.selectedCard) {
-					this.placeSelectedCard(row);
-				}
-			});
-		});
-	}
-
-	private onCardHover(card: Card, isHovering: boolean): void {
-		// Only apply hover effects to cards in player hand
-		if (card.parent !== this.playerHand) return;
-
-		// Don't apply hover effects to selected cards
-		if (this.selectedCard === card) return;
-
-		const targetY = isHovering ? -12 : 0;
-		const duration = 0.2;
-
-		gsap.to(card, {
-			y: targetY,
-			duration,
-			ease: "power2.out",
-		});
-	}
-
-	private onCardClick(card: Card, event: any): void {
-		event.stopPropagation(); // Prevent global click handler
-
-		// Only allow selection of cards in player hand
-		if (card.parent !== this.playerHand) {
-			return;
-		}
-
-		this.cardClickInProgress = true;
-
-		if (this.selectedCard === card) {
-			this.deselectCard();
-		} else {
-			this.selectCard(card);
-		}
-
-		setTimeout(() => {
-			this.cardClickInProgress = false;
-		}, 150);
-	}
-
-	private selectCard(card: Card): void {
-		if (this.selectedCard) {
-			this.deselectCard();
-		}
-
-		this.selectedCard = card;
-
-		// Lift card up
-		gsap.to(card, {
-			y: -30,
-			duration: 0.1,
-			ease: "power2.out",
-		});
-
-		// Highlight valid placement rows
-		this.highlightValidRows(card.cardData.type);
-
-		console.log(`✅ Selected: ${card.cardData.name}`);
-	}
-
-	private deselectCard(): void {
-		if (!this.selectedCard) return;
-
-		const card = this.selectedCard;
-
-		// Return card to normal position
-		gsap.to(card, {
-			y: 0,
-			duration: 0.3,
-			ease: "power2.out",
-		});
-
-		// Clear all row highlights
-		this.clearRowHighlights();
-
-		this.selectedCard = null;
-		console.log(`❌ Deselected card`);
-	}
-
-	private handleGlobalClick(): void {
-		if (this.cardClickInProgress) {
-			return;
-		}
-
-		// Deselect when clicking anywhere else
-		setTimeout(() => {
-			if (!this.cardClickInProgress) {
-				this.deselectCard();
-			}
-		}, 50);
-	}
-
-	private async placeSelectedCard(targetRow: PlayingRowContainer): Promise<void> {
-		if (!this.selectedCard) return;
-
-		// Check if the target row can accept this card type
-		if (!targetRow.canAcceptCard(this.selectedCard)) {
-			console.log(`❌ ${this.selectedCard.cardData.name} cannot be placed in ${targetRow.label}`);
-			return;
-		}
-
-		const cardIndex = this.playerHand.getAllCards().indexOf(this.selectedCard);
-		if (cardIndex === -1) return;
-
-		console.log(`✅ Placing ${this.selectedCard.cardData.name} in ${targetRow.label}`);
-
-		// Clear row highlights
-		this.clearRowHighlights();
-
-		// Clear selection before transfer
-		this.selectedCard = null;
-
-		// Animate card from hand to row
-		await this.playerHand.transferCardTo(cardIndex, targetRow);
-
-		// Update score using PlayingRowContainer's method
-		targetRow.updateScore();
-	}
-
-	private highlightValidRows(cardType: CardType): void {
-		// Determine which row can accept this card type
-		let validRow: PlayingRowContainer | null = null;
-
-		switch (cardType) {
-			case CardType.MELEE:
-				validRow = this.playerMeleeRow;
-				break;
-			case CardType.RANGED:
-				validRow = this.playerRangedRow;
-				break;
-			case CardType.SIEGE:
-				validRow = this.playerSiegeRow;
-				break;
-		}
-
-		if (!validRow) return;
-
-		// Use PlayingRowContainer's built-in highlight method
-		validRow.showHighlight();
-	}
-
-	private clearRowHighlights(): void {
-		// Clear highlights from all player rows
-		[this.playerMeleeRow, this.playerRangedRow, this.playerSiegeRow].forEach((row) => {
-			row.hideHighlight();
-		});
 	}
 
 	private createBackButton(): void {
@@ -593,7 +454,6 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 	}
 
 	update(_framesPassed: number): void {
-		// No continuous updates needed for now
 	}
 
 	resize(screenWidth: number, screenHeight: number): void {
@@ -601,17 +461,13 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 	}
 
 	private resizeAndCenter(screenWidth: number, screenHeight: number): void {
-		// Calculate scale to fit screen while maintaining aspect ratio
 		const scaleX = screenWidth / this.BOARD_WIDTH;
 		const scaleY = screenHeight / this.BOARD_HEIGHT;
 		const scale = Math.min(scaleX, scaleY);
 
-		// Calculate how much the game board will be offset when centered
 		const offsetX = (screenWidth - this.BOARD_WIDTH * scale) / 2;
 		const offsetY = (screenHeight - this.BOARD_HEIGHT * scale) / 2;
 
-		// Resize and position background to cover entire screen
-		// Account for the board offset by starting the background at negative coordinates
 		this.background.clear();
 		this.background.rect(
 			-offsetX / scale,
@@ -621,10 +477,8 @@ export class TestBoardScene extends PixiContainer implements SceneInterface {
 		);
 		this.background.fill({ color: 0x1a1410 });
 
-		// Apply scale to game board
 		this.gameBoard.scale.set(scale);
 
-		// Center the game board
 		this.gameBoard.x = offsetX;
 		this.gameBoard.y = offsetY;
 

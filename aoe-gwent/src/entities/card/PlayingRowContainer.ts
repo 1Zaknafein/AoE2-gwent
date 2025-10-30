@@ -162,32 +162,21 @@ export class PlayingRowContainer extends CardContainer {
 	}
 
 	/**
-	 * Show the highlight overlay with pulsing animation
+	 * Show the highlight overlay
 	 */
 	public showHighlight(): void {
+		// Kill any existing animations first to prevent conflicts
+		gsap.killTweensOf(this.highlightOverlay);
+		
 		this.highlightOverlay.visible = true;
-		this.highlightOverlay.alpha = 0;
-
-		gsap.to(this.highlightOverlay, {
-			alpha: 1,
-			duration: 0.3,
-			ease: "power2.out",
-		});
-
-		// Add a subtle pulsing animation
-		gsap.to(this.highlightOverlay, {
-			alpha: 0.6,
-			duration: 1.0,
-			repeat: -1,
-			yoyo: true,
-			ease: "sine.inOut",
-		});
+		this.highlightOverlay.alpha = 0.4;
 	}
 
 	/**
 	 * Hide the highlight overlay
 	 */
 	public hideHighlight(): void {
+		// Kill any existing animations first
 		gsap.killTweensOf(this.highlightOverlay);
 
 		gsap.to(this.highlightOverlay, {
