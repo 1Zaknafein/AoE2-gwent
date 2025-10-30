@@ -48,6 +48,9 @@ const availableRoomsSection = document.getElementById(
 const createRoomBtn = document.getElementById(
 	"create-room-btn"
 ) as HTMLButtonElement;
+const testGameBtn = document.getElementById(
+	"test-game-btn"
+) as HTMLButtonElement;
 const confirmCreateRoomBtn = document.getElementById(
 	"confirm-create-room"
 ) as HTMLButtonElement;
@@ -384,6 +387,11 @@ function handleCreateRoomClick() {
 	showCreateRoomModal();
 }
 
+function handleTestGame() {
+	console.log("🎮 Test game button clicked - redirecting to board_test.html");
+	window.location.href = "board_test.html";
+}
+
 function handleConfirmCreateRoom() {
 	const roomName = roomNameInput?.value.trim();
 	const playerName = playerNameInput?.value.trim();
@@ -465,6 +473,7 @@ function handleLeaveRoom() {
 loginBtn?.addEventListener("click", handleLogin);
 logoutBtn?.addEventListener("click", handleLogout);
 createRoomBtn?.addEventListener("click", handleCreateRoomClick);
+testGameBtn?.addEventListener("click", handleTestGame);
 confirmCreateRoomBtn?.addEventListener("click", handleConfirmCreateRoom);
 cancelCreateRoomBtn?.addEventListener("click", handleCancelCreateRoom);
 readyBtn?.addEventListener("click", handleReadyToggle);

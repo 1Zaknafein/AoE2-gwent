@@ -5,7 +5,6 @@ import {
 	PixiText,
 	PixiGraphics,
 } from "../../plugins/engine";
-import { ANTIALIAS_FILTER } from "../../shared/constant/Constants";
 import { CardFaceTextures } from "../../shared/database/CardFaceTextures.js";
 import gsap from "gsap";
 
@@ -66,7 +65,7 @@ export class Card extends PixiContainer {
 		this._scoreBackground.visible = true;
 		this.addChild(this._scoreBackground);
 
-		this._scoreBackground.filters = [ANTIALIAS_FILTER];
+		// this._scoreBackground.filters = [ANTIALIAS_FILTER];
 
 		this._scoreText = new PixiText({
 			text: this._cardData.score.toString(),

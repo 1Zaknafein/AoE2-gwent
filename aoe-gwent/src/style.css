@@ -322,6 +322,19 @@ button:focus-visible {
     border-color: #8b7355;
 }
 
+.btn-test {
+    background: linear-gradient(145deg, #4a5568 0%, #5a6a7a 25%, #3a454f 75%, #2d3748 100%);
+    color: #a7f3d0;
+    border-color: #2d3748;
+}
+
+.btn-test:hover {
+    background: linear-gradient(145deg, #5a6a7a 0%, #6b7b8c 25%, #4a5568 75%, #3a454f 100%);
+    color: #6ee7b7;
+    border-color: #4a5568;
+    box-shadow: 0 0 15px rgba(110, 231, 183, 0.4);
+}
+
 .room-list {
     max-height: 350px;
     overflow-y: auto;

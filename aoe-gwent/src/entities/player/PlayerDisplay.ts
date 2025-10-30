@@ -8,7 +8,6 @@ import {
 } from "pixi.js";
 import { PixiContainer, PixiAssets } from "../../plugins/engine";
 import { CardContainer } from "../card";
-import { ANTIALIAS_FILTER } from "../../shared/constant/Constants";
 import { PassButton } from "../../ui/components";
 import { GameController } from "../../shared/game";
 
@@ -258,7 +257,6 @@ export class PlayerDisplay extends PixiContainer {
 			alpha: 1,
 		});
 
-		this.scoreBackground.filters = [ANTIALIAS_FILTER];
 
 		this.addChild(this.scoreBackground);
 	}

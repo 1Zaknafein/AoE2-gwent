@@ -6,20 +6,21 @@ import { IPixiApplicationOptions } from './plugins/engine';
 import { Loader, PixiAssets } from './entities/loader';
 import { options } from './shared/config/manifest';
 import { LoaderScene } from './ui/scenes/LoaderScene';
-import { GameScene } from './ui/scenes/GameScene';
+import { TestBoardScene } from './ui/scenes/TestBoardScene';
 
-const boostsrap = async () => {
+const bootstrap = async () => {
     const canvas = document.getElementById("pixi-screen") as HTMLCanvasElement;
     const resizeTo = window;
     const resolution = window.devicePixelRatio || 1;
     const autoDensity = true;
-    const backgroundColor = 0x1a1410;
+    const backgroundColor = 0x000000;
     const appOptions: Partial<IPixiApplicationOptions> = {
         canvas,
         resizeTo,
         resolution,
         autoDensity,
-        backgroundColor
+        backgroundColor,
+        antialias: true
     }
 
     const application = new App();
@@ -30,9 +31,12 @@ const boostsrap = async () => {
     const loader = new Loader(pixiAssets);
     const loaderScene = new LoaderScene();
     Manager.changeScene(loaderScene);
+    
+    // Load assets then switch to TestBoardScene instead of GameScene
     loader.download(options, loaderScene.progressCallback.bind(loaderScene)).then(() => {
-        Manager.changeScene(new GameScene());
+        console.log('🎮 Launching Test Board Scene');
+        Manager.changeScene(new TestBoardScene());
     });
 }
 
-boostsrap();
+bootstrap();
