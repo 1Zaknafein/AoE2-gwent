@@ -10,6 +10,8 @@ import { GameScene } from "./ui/scenes/GameScene";
 import { GameManager } from "./shared/game/GameManager";
 import { GameStateMachine } from "./shared/game/GameStateMachine";
 import { CardDealingManager } from "./ui/managers/CardDealingManager";
+import { MessageDisplay } from "./ui/components/MessageDisplay";
+import { GameContext } from "./shared/game/GameContext";
 import { StateName } from "./shared/game/states/GameState";
 import { SetupState } from "./shared/game/states/SetupState";
 import { GameStartState } from "./shared/game/states/GameStartState";
@@ -51,15 +53,24 @@ const boostsrap = async () => {
         gameScene.getOpponentHand()
       );
 
+      const messageDisplay = new MessageDisplay();
+      gameScene.addChild(messageDisplay);
+
+      const context: GameContext = {
+        gameManager,
+        cardDealingManager,
+        messageDisplay,
+      };
+
       // prettier-ignore
       const states = new Map([
-        [StateName.SETUP, new SetupState(gameManager)],
-        [StateName.GAME_START, new GameStartState(gameManager, cardDealingManager)],
-        [StateName.ROUND_START, new RoundStartState(gameManager)],
-        [StateName.PLAYER_ACTION, new PlayerActionState(gameManager)],
-        [StateName.ENEMY_ACTION, new EnemyActionState(gameManager)],
-        [StateName.ROUND_END, new RoundEndState(gameManager)],
-        [StateName.RESOLUTION, new ResolutionState(gameManager)],
+        [StateName.SETUP, new SetupState(context)],
+        [StateName.GAME_START, new GameStartState(context)],
+        [StateName.ROUND_START, new RoundStartState(context)],
+        [StateName.PLAYER_ACTION, new PlayerActionState(context)],
+        [StateName.ENEMY_ACTION, new EnemyActionState(context)],
+        [StateName.ROUND_END, new RoundEndState(context)],
+        [StateName.RESOLUTION, new ResolutionState(context)],
       ]);
 
       const stateMachine = new GameStateMachine(states);

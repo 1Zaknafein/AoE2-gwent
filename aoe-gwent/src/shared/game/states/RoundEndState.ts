@@ -1,12 +1,12 @@
 import { GameState, StateName } from "./GameState";
-import { GameManager } from "../GameManager";
+import { GameContext } from "../GameContext";
 
 /**
  * RoundEndState - Handles end of round
  */
 export class RoundEndState extends GameState {
-  constructor(gameManager: GameManager) {
-    super(gameManager);
+  constructor(context: GameContext) {
+    super(context);
   }
 
   public async execute(): Promise<StateName> {

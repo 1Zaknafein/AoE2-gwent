@@ -1,5 +1,5 @@
 import { GameState, StateName } from "./GameState";
-import { GameManager } from "../GameManager";
+import { GameContext } from "../GameContext";
 
 /**
  * SetupState - Initializes the game session
@@ -9,10 +9,9 @@ import { GameManager } from "../GameManager";
  * Transitions to: GameStartState
  */
 export class SetupState extends GameState {
-  constructor(gameManager: GameManager) {
-    super(gameManager);
+  constructor(context: GameContext) {
+    super(context);
   }
-
   public async execute(): Promise<StateName> {
     this.gameManager.initializeGame("bot", "Bot Opponent");
 

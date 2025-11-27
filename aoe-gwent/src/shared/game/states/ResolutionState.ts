@@ -1,5 +1,5 @@
 import { GameState, StateName } from "./GameState";
-import { GameManager } from "../GameManager";
+import { GameContext } from "../GameContext";
 
 /**
  * ResolutionState - Game over state
@@ -11,8 +11,8 @@ import { GameManager } from "../GameManager";
  * Transitions to: GameStartState (restart game) or stays here (exit)
  */
 export class ResolutionState extends GameState {
-  constructor(gameManager: GameManager) {
-    super(gameManager);
+  constructor(context: GameContext) {
+    super(context);
   }
 
   public async execute(): Promise<StateName> {

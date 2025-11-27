@@ -1,12 +1,12 @@
 import { GameState, StateName } from "./GameState";
-import { GameManager } from "../GameManager";
+import { GameContext } from "../GameContext";
 
 /**
  * RoundStartState - Prepares for a new round
  */
 export class RoundStartState extends GameState {
-  constructor(gameManager: GameManager) {
-    super(gameManager);
+  constructor(context: GameContext) {
+    super(context);
   }
 
   public async execute(): Promise<StateName> {

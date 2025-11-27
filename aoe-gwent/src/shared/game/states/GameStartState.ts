@@ -1,20 +1,12 @@
 import { GameState, StateName } from "./GameState";
-import { GameManager } from "../GameManager";
-import { CardDealingManager } from "../../../ui/managers/CardDealingManager";
+import { GameContext } from "../GameContext";
 
 /**
  * GameStartState - Starts a new game
  */
 export class GameStartState extends GameState {
-  private cardDealingManager: CardDealingManager;
-
-  constructor(
-    gameManager: GameManager,
-    cardDealingManager: CardDealingManager
-  ) {
-    super(gameManager);
-
-    this.cardDealingManager = cardDealingManager;
+  constructor(context: GameContext) {
+    super(context);
   }
 
   public async execute(): Promise<StateName> {
