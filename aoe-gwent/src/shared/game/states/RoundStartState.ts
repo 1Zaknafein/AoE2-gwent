@@ -1,20 +1,18 @@
 import { GameState, StateName } from "./GameState";
 import { GameManager } from "../GameManager";
-import { CardDealingManager } from "../../../ui/managers/CardDealingManager";
 
 /**
  * RoundStartState - Prepares for a new round
  * - Clears passed player flags
  * - Determines who goes first
- * - Sets up round-specific state
+ * - Displays round start message
+ * - Does NOT generate new decks (that's done in GameStartState)
+ *
+ * Transitions to: PlayerActionState or EnemyActionState (based on who starts)
  */
 export class RoundStartState extends GameState {
-  private cardDealingManager: CardDealingManager
-
-  constructor(gameManager: GameManager, cardDealingManager: CardDealingManager) {
+  constructor(gameManager: GameManager) {
     super(gameManager);
-    
-    this.cardDealingManager = cardDealingManager;
   }
 
   public async execute(): Promise<StateName> {
@@ -28,43 +26,21 @@ export class RoundStartState extends GameState {
       throw new Error("Game session not initialized");
     }
 
-    const gameState = gameSession.getGameState();
-
-    if (!gameState.gameStarted) {
-      console.log("[RoundStartState] Starting game - dealing cards...");
-      gameSession.startGame();
-
-      if (this.cardDealingManager) {
-        const playerId = this.gameManager.getPlayerId();
-        const gameData = gameSession.getGameDataForPlayer(playerId);
-        
-        if (gameData) {
-          const opponentId = gameSession.getOpponentId(playerId);
-          const opponentData = opponentId ? gameSession.getGameDataForPlayer(opponentId) : null;
-          
-          await this.delay(0.1);
-          this.cardDealingManager.dealCards(
-            gameData.playerHand,
-            opponentData?.playerHand || []
-          );
-        }
-      } else {
-        console.warn("[RoundStartState] CardDealingManager not set - cards not dealt to UI");
-      }
-    }
-
     // TODO Implement round start logic
     // - Clear passed players
-    // - Determine starting player
-    // - Display round start message
+    // - Determine starting player for this round
+    // - Display round start message/animation
+    // - Apply any round-specific effects
 
     console.log(
-      "[RoundStartState] Round started"
+      "[RoundStartState] Round prepared - waiting indefinitely (no turn logic yet)"
     );
 
-    // Wait indefinitely for now.
+    // Wait indefinitely for now - state machine will pause here until turn logic is implemented
     await new Promise(() => {});
 
+    // This code will never be reached (until turn logic is implemented)
+    // Will transition based on who starts the round
     return StateName.PLAYER_ACTION;
   }
 }

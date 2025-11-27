@@ -5,9 +5,11 @@ import { GameManager } from "../GameManager";
  */
 export enum StateName {
 	SETUP = 'SETUP',
+	GAME_START = 'GAME_START',
 	ROUND_START = 'ROUND_START',
 	PLAYER_ACTION = 'PLAYER_ACTION',
 	ENEMY_ACTION = 'ENEMY_ACTION',
+	ROUND_END = 'ROUND_END',
 	RESOLUTION = 'RESOLUTION',
 }
 

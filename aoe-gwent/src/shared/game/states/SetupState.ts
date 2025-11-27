@@ -2,11 +2,11 @@ import { GameState, StateName } from "./GameState";
 import { GameManager } from "../GameManager";
 
 /**
- * SetupState - Initializes the game before actual gameplay starts
- * - Creates game session
- * - Sets up initial game state
+ * SetupState - Initializes the game session
+ * - Creates game session and bot player
+ * - Does NOT start the game or deal cards
  * 
- * Transitions to: RoundStartState
+ * Transitions to: GameStartState
  */
 export class SetupState extends GameState {
 	constructor(gameManager: GameManager) {
@@ -14,22 +14,18 @@ export class SetupState extends GameState {
 	}
 
 	public async execute(): Promise<StateName> {
-		console.log("[SetupState] Initializing game...");
+		console.log("[SetupState] Initializing game session...");
 
-		// Initialize game session and bot player
 		this.gameManager.initializeGame("bot", "Bot Opponent");
 
-		// Get game session
 		const gameSession = this.gameManager.getGameSession();
+
 		if (!gameSession) {
 			throw new Error("Failed to initialize game session");
 		}
 
-		// Don't start the game yet - just initialize it
-		// This creates the session but doesn't deal cards
-		console.log("[SetupState] Game session initialized (no cards dealt yet)");
+		console.log("[SetupState] Game session initialized");
 
-		// Transition to round start
-		return StateName.ROUND_START;
+		return StateName.GAME_START;
 	}
 }

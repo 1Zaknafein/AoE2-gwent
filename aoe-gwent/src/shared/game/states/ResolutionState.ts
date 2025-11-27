@@ -2,29 +2,42 @@ import { GameState, StateName } from "./GameState";
 import { GameManager } from "../GameManager";
 
 /**
- * ResolutionState - Resolves the round after both players have passed
+ * ResolutionState - Game over state
+ * - Displays final game results
+ * - Shows overall winner
+ * - Provides option to restart (new game)
+ * - Clears game data when restarting
+ *
+ * Transitions to: GameStartState (restart game) or stays here (exit)
  */
 export class ResolutionState extends GameState {
-	constructor(gameManager: GameManager) {
-		super(gameManager);
-	}
+  constructor(gameManager: GameManager) {
+    super(gameManager);
+  }
 
-	public async execute(): Promise<StateName> {
-		console.log("[ResolutionState] Resolving round...");
+  public async execute(): Promise<StateName> {
+    console.log("[ResolutionState] Game over - displaying final results");
 
-		// TODO: Implement resolution logic
-		// - Calculate final scores for the round
-		// - Determine round winner
-		// - Update round scores
-		// - Check if game is over (someone won 2 rounds)
-		// - If game continues, prepare for next round
-		// - Clear boards
-		// - Display round results
+    // Get game session
+    const gameSession = this.gameManager.getGameSession();
+    if (!gameSession) {
+      throw new Error("Game session not initialized");
+    }
 
-		console.log("[ResolutionState] Round resolved");
+    // TODO: Implement game over logic
+    // - Display final winner
+    // - Show game statistics
+    // - Provide "Play Again" button
+    // - Clear round scores when restarting
 
-		// TODO: Check if game is over and transition to GameEndState
-		// For now, always go back to round start
-		return StateName.ROUND_START;
-	}
+    console.log("[ResolutionState] Waiting for player input (restart/exit)");
+
+    // For now, just pause here
+    // In the future, this would wait for player input to restart
+    await new Promise(() => {}); // Never resolves until restart is implemented
+
+    // When "Play Again" is clicked, return GameStartState
+    // This starts a NEW GAME (new decks, new cards) without re-initializing the session
+    return StateName.GAME_START;
+  }
 }
