@@ -10,20 +10,15 @@ export class GameStateMachine {
   private states: Map<StateName, GameState>;
   private isRunning: boolean = false;
 
+  // prettier-ignore
   private readonly transitions: Map<StateName, StateName[]> = new Map([
-    [StateName.SETUP, [StateName.GAME_START]], // Setup only runs once on load
-    [StateName.GAME_START, [StateName.ROUND_START]], // Start new game (new decks)
+    [StateName.SETUP, [StateName.GAME_START]],
+    [StateName.GAME_START, [StateName.ROUND_START]], 
     [StateName.ROUND_START, [StateName.PLAYER_ACTION, StateName.ENEMY_ACTION]],
-    [
-      StateName.PLAYER_ACTION,
-      [StateName.PLAYER_ACTION, StateName.ENEMY_ACTION, StateName.ROUND_END],
-    ],
-    [
-      StateName.ENEMY_ACTION,
-      [StateName.ENEMY_ACTION, StateName.PLAYER_ACTION, StateName.ROUND_END],
-    ],
-    [StateName.ROUND_END, [StateName.ROUND_START, StateName.RESOLUTION]], // Next round or game over
-    [StateName.RESOLUTION, [StateName.GAME_START]], // Restart goes to GameStart, not Setup
+    [StateName.PLAYER_ACTION,[StateName.PLAYER_ACTION, StateName.ENEMY_ACTION, StateName.ROUND_END]],
+    [StateName.ENEMY_ACTION, [StateName.ENEMY_ACTION, StateName.PLAYER_ACTION, StateName.ROUND_END]],
+    [StateName.ROUND_END, [StateName.ROUND_START, StateName.RESOLUTION]],
+    [StateName.RESOLUTION, [StateName.GAME_START]],
   ]);
 
   constructor(states: Map<StateName, GameState>) {
@@ -56,8 +51,6 @@ export class GameStateMachine {
    */
   private async run(): Promise<void> {
     while (this.isRunning && this.currentState && this.currentStateName) {
-      console.log(`\nCurrent State: ${this.currentStateName}`);
-
       const nextStateName = await this.currentState.execute();
 
       if (!this.isValidTransition(this.currentStateName, nextStateName)) {

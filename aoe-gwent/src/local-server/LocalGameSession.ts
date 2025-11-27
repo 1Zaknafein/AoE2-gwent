@@ -144,9 +144,6 @@ export class LocalGameSession {
     this.session.gameState.phase = GamePhase.PLAYER_TURN;
     this.session.gameState.gameStarted = true;
 
-    console.log(
-      `Game started - both players have 10 cards in hand, ~40 in deck`
-    );
     this.notifyStateChange();
   }
 

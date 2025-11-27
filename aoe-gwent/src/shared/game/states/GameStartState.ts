@@ -45,12 +45,6 @@ export class GameStartState extends GameState {
       opponentData?.playerHand || []
     );
 
-    console.log(
-      `[GameStartState] Dealt ${gameData.playerHand.length} cards to player, ${
-        opponentData?.playerHand.length || 0
-      } to opponent`
-    );
-
     console.log("[GameStartState] Game started successfully");
 
     return StateName.ROUND_START;
