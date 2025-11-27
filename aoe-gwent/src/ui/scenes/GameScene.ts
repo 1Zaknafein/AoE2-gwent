@@ -14,7 +14,6 @@ import {
   PlayerDisplayManager,
   PlayerDisplayManagerConfig,
 } from "../../entities/player";
-import { LocalGameController } from "../../shared/game/LocalGameController";
 import { GameBoardInteractionManager } from "./GameBoardInteractionManager";
 
 /**
@@ -89,44 +88,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
     this.cardContainers = new CardContainerManager();
 
     this.resize(Manager.width, Manager.height);
-  }
-
-  /**
-   * Set the LocalGameController for this scene
-   */
-  public setGameController(gameController: LocalGameController): void {
-    // Recreate PlayerDisplayManager with LocalGameController so Pass button is created
-    if (this.playerDisplayManager) {
-      this.gameBoard.removeChild(this.playerDisplayManager);
-      this.playerDisplayManager.destroy();
-    }
-
-    const config: PlayerDisplayManagerConfig = {
-      playerName: "PLAYER",
-      enemyName: "OPPONENT",
-      playerPosition: { x: -20, y: 950 },
-      enemyPosition: { x: -20, y: 200 },
-      gameController,
-    };
-
-    this.playerDisplayManager = new PlayerDisplayManager(config);
-    this.gameBoard.addChild(this.playerDisplayManager);
-
-    const playerContainers = [
-      this.playerMeleeRow,
-      this.playerRangedRow,
-      this.playerSiegeRow,
-    ];
-    const opponentContainers = [
-      this._opponentMeleeRow,
-      this._opponentRangedRow,
-      this._opponentSiegeRow,
-    ];
-
-    this.playerDisplayManager.setupScoreTracking(
-      playerContainers,
-      opponentContainers
-    );
   }
 
   private createBackground(): void {
@@ -466,5 +427,19 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
     this.gameBoard.x = offsetX;
     this.gameBoard.y = offsetY;
+  }
+
+  /**
+   * Get player hand container
+   */
+  public getPlayerHand(): HandContainer {
+    return this.playerHand;
+  }
+
+  /**
+   * Get opponent hand container
+   */
+  public getOpponentHand(): HandContainer {
+    return this.opponentHand;
   }
 }

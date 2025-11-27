@@ -3,13 +3,6 @@ import { GameManager } from "../GameManager";
 
 /**
  * PlayerActionState - Waits for and processes player actions
- * - Player can place a card
- * - Player can pass
- * 
- * Transitions to:
- * - PlayerActionState (if player still has priority after action)
- * - EnemyActionState (if turn switches to enemy)
- * - ResolutionState (if both players have passed)
  */
 export class PlayerActionState extends GameState {
 	constructor(gameManager: GameManager) {

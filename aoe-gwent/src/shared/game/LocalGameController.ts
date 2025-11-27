@@ -25,7 +25,7 @@ export class LocalGameController extends EventEmitter {
 	}
 
 	/**
-	 * Start a local game (replaces connectToServer)
+	 * Start a local game
 	 */
 	public async startLocalGame(): Promise<boolean> {
 		try {

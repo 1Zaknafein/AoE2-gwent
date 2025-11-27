@@ -3,15 +3,6 @@ import { GameManager } from "../GameManager";
 
 /**
  * ResolutionState - Resolves the round after both players have passed
- * - Calculates scores
- * - Determines round winner
- * - Awards round point
- * - Checks for game end condition
- * - Prepares for next round
- * 
- * Transitions to:
- * - RoundStartState (if game continues)
- * - GameEndState (if someone won 2 rounds) - TODO: create this state
  */
 export class ResolutionState extends GameState {
 	constructor(gameManager: GameManager) {

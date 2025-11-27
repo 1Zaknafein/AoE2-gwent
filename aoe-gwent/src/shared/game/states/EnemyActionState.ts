@@ -3,13 +3,6 @@ import { GameManager } from "../GameManager";
 
 /**
  * EnemyActionState - Processes enemy (bot) actions
- * - Bot evaluates board state
- * - Bot decides to place card or pass
- * 
- * Transitions to:
- * - EnemyActionState (if bot still has priority after action)
- * - PlayerActionState (if turn switches to player)
- * - ResolutionState (if both players have passed)
  */
 export class EnemyActionState extends GameState {
 	constructor(gameManager: GameManager) {
