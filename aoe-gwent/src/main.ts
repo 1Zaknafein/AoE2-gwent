@@ -10,7 +10,6 @@ import { GameScene } from "./ui/scenes/GameScene";
 import { GameManager } from "./shared/game/GameManager";
 import { GameStateMachine } from "./shared/game/GameStateMachine";
 import { CardDealingManager } from "./ui/managers/CardDealingManager";
-import { MessageDisplay } from "./ui/components/MessageDisplay";
 import { GameContext } from "./shared/game/GameContext";
 import { StateName } from "./shared/game/states/GameState";
 import { SetupState } from "./shared/game/states/SetupState";
@@ -53,13 +52,10 @@ const boostsrap = async () => {
         gameScene.getOpponentHand()
       );
 
-      const messageDisplay = new MessageDisplay();
-      gameScene.addChild(messageDisplay);
-
       const context: GameContext = {
         gameManager,
         cardDealingManager,
-        messageDisplay,
+        messageDisplay: gameScene.getMessageDisplay(),
       };
 
       // prettier-ignore

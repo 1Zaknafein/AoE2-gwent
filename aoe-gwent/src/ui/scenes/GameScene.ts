@@ -15,9 +15,10 @@ import {
   PlayerDisplayManagerConfig,
 } from "../../entities/player";
 import { GameBoardInteractionManager } from "./GameBoardInteractionManager";
+import { MessageDisplay } from "../components/MessageDisplay";
 
 /**
- * Standalone test board scene for testing card interactions without server
+ * Game scene containing all board elements.
  * Mimics Gwent-style board with 3 rows per player (Melee, Ranged, Siege)
  */
 export class GameScene extends PixiContainer implements SceneInterface {
@@ -47,6 +48,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
   private interactionManager!: GameBoardInteractionManager;
   private playerDisplayManager!: PlayerDisplayManager;
   public cardContainers!: CardContainerManager;
+  private messageDisplay!: MessageDisplay;
 
   // Layout constants (based on 16:9 aspect ratio, ~2400x1350 internal resolution)
   private readonly BOARD_WIDTH = 2400;
@@ -59,7 +61,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
   constructor() {
     super();
     this.interactive = true;
-    this.label = "test_board_scene";
+    this.label = "game_scene";
 
     this.gameBoard = new PixiContainer();
     this.gameBoard.label = "game_board";
@@ -72,6 +74,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
     this.createDecks();
     this.createHands();
     this.createPlayerDisplaySystem();
+    this.createMessageDisplay();
 
     this.interactionManager = new GameBoardInteractionManager(
       this.playerHand,
@@ -406,6 +409,15 @@ export class GameScene extends PixiContainer implements SceneInterface {
     this.gameBoard.addChild(this.opponentDeck);
   }
 
+  private createMessageDisplay(): void {
+    this.messageDisplay = new MessageDisplay();
+    this.messageDisplay.position.set(
+      this.BOARD_WIDTH / 2,
+      this.BOARD_HEIGHT / 2
+    );
+    this.gameBoard.addChild(this.messageDisplay);
+  }
+
   resize(screenWidth: number, screenHeight: number): void {
     const scaleX = screenWidth / this.BOARD_WIDTH;
     const scaleY = screenHeight / this.BOARD_HEIGHT;
@@ -427,6 +439,16 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
     this.gameBoard.x = offsetX;
     this.gameBoard.y = offsetY;
+  }
+
+  /**
+   * Get the MessageDisplay instance for use in game states
+   */
+  public getMessageDisplay(): MessageDisplay {
+    if (!this.messageDisplay) {
+      throw new Error("MessageDisplay not initialized");
+    }
+    return this.messageDisplay;
   }
 
   /**
