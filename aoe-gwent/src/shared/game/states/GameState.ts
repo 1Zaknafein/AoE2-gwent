@@ -4,6 +4,7 @@ import { CardDealingManager } from "../../../ui/managers/CardDealingManager";
 import { MessageDisplay } from "../../../ui/components/MessageDisplay";
 import { PlayerDisplayManager } from "../../../entities/player";
 import { GameBoardInteractionManager } from "../../../ui/scenes/GameBoardInteractionManager";
+import { PlayingRowContainer } from "../../../entities/card";
 
 /**
  * Enum for all possible game states
@@ -27,6 +28,11 @@ export abstract class GameState {
 	protected messageDisplay: MessageDisplay;
 	protected playerDisplayManager: PlayerDisplayManager;
 	protected interactionManager: GameBoardInteractionManager;
+	protected opponentRows: {
+		melee: PlayingRowContainer;
+		ranged: PlayingRowContainer;
+		siege: PlayingRowContainer;
+	};
 
 	constructor(context: GameContext) {
 		this.gameManager = context.gameManager;
@@ -34,6 +40,7 @@ export abstract class GameState {
 		this.messageDisplay = context.messageDisplay;
 		this.playerDisplayManager = context.playerDisplayManager;
 		this.interactionManager = context.interactionManager;
+		this.opponentRows = context.opponentRows;
 	}
 
 	/**

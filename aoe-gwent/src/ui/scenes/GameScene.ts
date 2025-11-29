@@ -475,4 +475,16 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	public getInteractionManager(): GameBoardInteractionManager {
 		return this.interactionManager;
 	}
+
+	public getOpponentMeleeRow(): PlayingRowContainer {
+		return this._opponentMeleeRow;
+	}
+
+	public getOpponentRangedRow(): PlayingRowContainer {
+		return this._opponentRangedRow;
+	}
+
+	public getOpponentSiegeRow(): PlayingRowContainer {
+		return this._opponentSiegeRow;
+	}
 }

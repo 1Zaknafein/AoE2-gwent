@@ -58,6 +58,12 @@ const boostsrap = async () => {
 				messageDisplay: gameScene.getMessageDisplay(),
 				playerDisplayManager: gameScene.getPlayerDisplayManager(),
 				interactionManager: gameScene.getInteractionManager(),
+				opponentRows: {
+					hand: gameScene.getOpponentHand(),
+					melee: gameScene.getOpponentMeleeRow(),
+					ranged: gameScene.getOpponentRangedRow(),
+					siege: gameScene.getOpponentSiegeRow(),
+				},
 			};
 
 			// prettier-ignore
