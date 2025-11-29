@@ -56,6 +56,7 @@ const boostsrap = async () => {
         gameManager,
         cardDealingManager,
         messageDisplay: gameScene.getMessageDisplay(),
+        playerDisplayManager: gameScene.getPlayerDisplayManager(),
       };
 
       // prettier-ignore

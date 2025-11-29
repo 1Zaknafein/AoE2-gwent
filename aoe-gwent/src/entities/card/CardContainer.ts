@@ -408,7 +408,8 @@ export class CardContainer extends PixiContainer {
 		return new Promise<void>((resolve) => {
 			// Calculate target visual scale:
 			// Target card scale * target container scale / source container scale
-			const targetVisualScale = (targetCardScale * targetScale) / (sourceCardScale * sourceScale);
+			const targetVisualScale =
+				(targetCardScale * targetScale) / (sourceCardScale * sourceScale);
 
 			const tweenDuration = 0.4;
 
@@ -509,7 +510,6 @@ export class CardContainer extends PixiContainer {
 
 		const animationPromises = cardsToTransfer.map((card, index) => {
 			return new Promise<void>((resolve) => {
-				// Disable card interactivity during animation
 				card.eventMode = "none";
 				card.cursor = "default";
 

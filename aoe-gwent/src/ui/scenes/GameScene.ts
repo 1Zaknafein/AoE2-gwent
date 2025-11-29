@@ -464,4 +464,11 @@ export class GameScene extends PixiContainer implements SceneInterface {
   public getOpponentHand(): HandContainer {
     return this.opponentHand;
   }
+
+  /**
+   * Get player display manager
+   */
+  public getPlayerDisplayManager(): PlayerDisplayManager {
+    return this.playerDisplayManager;
+  }
 }

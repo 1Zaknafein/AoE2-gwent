@@ -2,6 +2,7 @@ import { GameManager } from "../GameManager";
 import { GameContext } from "../GameContext";
 import { CardDealingManager } from "../../../ui/managers/CardDealingManager";
 import { MessageDisplay } from "../../../ui/components/MessageDisplay";
+import { PlayerDisplayManager } from "../../../entities/player";
 
 /**
  * Enum for all possible game states
@@ -23,11 +24,13 @@ export abstract class GameState {
   protected gameManager: GameManager;
   protected cardDealingManager: CardDealingManager;
   protected messageDisplay: MessageDisplay;
+  protected playerDisplayManager: PlayerDisplayManager;
 
   constructor(context: GameContext) {
     this.gameManager = context.gameManager;
     this.cardDealingManager = context.cardDealingManager;
     this.messageDisplay = context.messageDisplay;
+    this.playerDisplayManager = context.playerDisplayManager;
   }
 
   /**

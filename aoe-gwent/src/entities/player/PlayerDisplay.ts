@@ -1,8 +1,4 @@
-import {
-	Text,
-	TextStyle,
-	Graphics,
-} from "pixi.js";
+import { Text, TextStyle, Graphics } from "pixi.js";
 import { PixiContainer } from "../../plugins/engine";
 import { CardContainer } from "../card";
 import { PassButton } from "../../ui/components";
@@ -38,7 +34,7 @@ export class PlayerDisplay extends PixiContainer {
 		this.createTextElements(data.playerName);
 		this.createRoundWinIndicators();
 
-		if (!this._isEnemy && this._gameController) {
+		if (!this._isEnemy) {
 			this.createPassButton();
 		}
 
@@ -100,7 +96,7 @@ export class PlayerDisplay extends PixiContainer {
 		this.handCountText.position.set(bgWidth - 60, 100);
 
 		if (this.passButton) {
-			this.passButton.position.set(bgWidth / 2, bgHeight - 35);
+			this.passButton.position.set(0, bgHeight + 20);
 		}
 	}
 
@@ -222,7 +218,7 @@ export class PlayerDisplay extends PixiContainer {
 	private createDisplayBackground(): void {
 		const width = 400;
 		const height = 180;
-		
+
 		this.displayBackground = new Graphics();
 
 		this.displayBackground.rect(0, 0, width, height);
@@ -233,7 +229,12 @@ export class PlayerDisplay extends PixiContainer {
 		this.displayBackground.stroke({ color: 0xd4af37, width: 2, alpha: 0.6 });
 
 		const innerBorder = 12;
-		this.displayBackground.rect(innerBorder, innerBorder, width - innerBorder * 2, height - innerBorder * 2);
+		this.displayBackground.rect(
+			innerBorder,
+			innerBorder,
+			width - innerBorder * 2,
+			height - innerBorder * 2
+		);
 		this.displayBackground.stroke({ color: 0x5a3d1f, width: 1, alpha: 0.5 });
 
 		this.addChild(this.displayBackground);
@@ -264,22 +265,8 @@ export class PlayerDisplay extends PixiContainer {
 	}
 
 	private createPassButton(): void {
-		this.passButton = new PassButton(() => this.onPassButtonClick());
+		this.passButton = new PassButton(() => {});
 		this.addChild(this.passButton);
-	}
-
-	private async onPassButtonClick(): Promise<void> {
-		if (this._gameController) {
-			if (!this._gameController.canPlayerAct()) {
-				console.log("Cannot pass - not your turn or already passed");
-				return;
-			}
-			try {
-				await this._gameController.passTurn();
-			} catch (error) {
-				console.error("Failed to pass turn:", error);
-			}
-		}
 	}
 
 	private updateTotalScore(): void {

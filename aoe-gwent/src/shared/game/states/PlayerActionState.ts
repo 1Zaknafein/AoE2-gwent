@@ -1,41 +1,79 @@
 import { GameState, StateName } from "./GameState";
 import { GameContext } from "../GameContext";
-import { HandContainer } from "../../../entities/card";
 
 /**
  * PlayerActionState - Waits for and processes player actions
  */
 export class PlayerActionState extends GameState {
-  private _playerHandContainer: HandContainer;
+	constructor(context: GameContext) {
+		super(context);
+	}
 
-  constructor(context: GameContext) {
-    super(context);
+	public async execute(): Promise<StateName> {
+		const playerHand = this.cardDealingManager.getPlayerHand();
+		const passButton = this.playerDisplayManager.playerDisplay.passButton;
 
-    this._playerHandContainer = this.cardDealingManager.getPlayerHand();
-  }
+		await this.messageDisplay.showMessage("Your turn!");
 
-  public async execute(): Promise<StateName> {
-    await this.messageDisplay.showMessage("Your turn!");
+		// Enable player input
+		playerHand.setCardsInteractive(true);
+		if (passButton) {
+			passButton.setEnabled(true);
+		}
 
-    this._playerHandContainer.setCardsInteractive(true);
+		await this.waitForPlayerAction();
 
-    // TODO: Implement player action logic
-    // - Wait for player to take action (card placement or pass)
-    // - Process the action
-    // - Determine next state based on action result
+		// Disable player input
+		playerHand.setCardsInteractive(false);
+		if (passButton) {
+			passButton.setEnabled(false);
+		}
 
-    await new Promise(() => {});
+		console.log(this.gameManager.isBotTurn());
 
-    this._playerHandContainer.setCardsInteractive(false);
+		await new Promise(() => {});
 
-    // TODO: Return proper next state based on actual game logic
-    // For now, placeholder logic:
-    if (this.gameManager.haveBothPlayersPassed()) {
-      return StateName.RESOLUTION;
-    } else if (this.gameManager.isBotTurn()) {
-      return StateName.ENEMY_ACTION;
-    } else {
-      return StateName.PLAYER_ACTION;
-    }
-  }
+		if (this.gameManager.haveBothPlayersPassed()) {
+			return StateName.ROUND_END;
+		} else if (this.gameManager.isBotTurn()) {
+			return StateName.ENEMY_ACTION;
+		} else {
+			return StateName.PLAYER_ACTION;
+		}
+	}
+
+	/**
+	 * Wait for the player to either place a card or press the pass button
+	 */
+	private async waitForPlayerAction(): Promise<void> {
+		return new Promise<void>((resolve) => {
+			const playerHand = this.cardDealingManager.getPlayerHand();
+			const playerDisplay = this.playerDisplayManager.playerDisplay;
+			const passButton = playerDisplay.passButton;
+
+			if (!passButton) {
+				throw new Error("Pass button not found on player display");
+			}
+
+			// Listen for card being removed from hand (placed on board)
+			const onCardPlaced = () => {
+				cleanup();
+				resolve();
+			};
+
+			// Listen for pass button click
+			const onPassClicked = () => {
+				cleanup();
+				resolve();
+			};
+
+			playerHand.once("cardRemoved", onCardPlaced);
+			passButton.once("click", onPassClicked);
+
+			const cleanup = () => {
+				playerHand.off("cardRemoved", onCardPlaced);
+				passButton.off("click", onPassClicked);
+			};
+		});
+	}
 }
