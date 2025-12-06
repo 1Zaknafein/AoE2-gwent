@@ -95,7 +95,7 @@ export class GameSceneBuildHelper {
 			width,
 			undefined,
 			CardContainerLayoutType.STACK,
-			0.6
+			0.7
 		);
 		discardPile.addChild(bg);
 		discardPile.setCardsInteractive(false);
