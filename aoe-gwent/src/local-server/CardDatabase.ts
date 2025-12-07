@@ -9,10 +9,10 @@ export class CardDatabase {
 		const deck = [];
 
 		for (let i = 0; i < size; i++) {
-			const randomCard =
+			const randomCardData =
 				this.cards[Math.floor(Math.random() * this.cards.length)];
 
-			deck.push(randomCard);
+			deck.push(randomCardData);
 		}
 
 		return deck;

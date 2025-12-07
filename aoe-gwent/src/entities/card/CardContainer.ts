@@ -14,7 +14,6 @@ export class CardContainer extends PixiContainer {
 	private _cardSpacing: number = 5;
 	private _isAnimating: boolean = false;
 	private _activeTransfers: Set<GSAPTween> = new Set();
-	private _isContainerInteractive: boolean = false;
 	private _areCardsInteractive: boolean = true;
 	private _containerType: CardType | null = null;
 	private _layoutType: CardContainerLayoutType = CardContainerLayoutType.SPREAD;
@@ -45,27 +44,8 @@ export class CardContainer extends PixiContainer {
 		return this._cards.length;
 	}
 
-	public get maxWidth(): number {
-		return this._maxWidth;
-	}
-
 	public get cards() {
 		return this._cards;
-	}
-
-	public get isContainerInteractive(): boolean {
-		return this._isContainerInteractive;
-	}
-
-	public get areCardsInteractive(): boolean {
-		return this._areCardsInteractive;
-	}
-
-	/**
-	 * Get the number of active transfer animations.
-	 */
-	public get activeTransferCount(): number {
-		return this._activeTransfers.size;
 	}
 
 	/**
@@ -257,9 +237,7 @@ export class CardContainer extends PixiContainer {
 			this._cards.push(card);
 			this.addChild(card);
 
-			// Apply container's card scale
 			card.scale.set(this._cardScale);
-
 			card.eventMode = this._areCardsInteractive ? "static" : "none";
 			card.cursor = this._areCardsInteractive ? "pointer" : "default";
 
@@ -291,13 +269,7 @@ export class CardContainer extends PixiContainer {
 		}
 	}
 
-	public setPosition(x: number, y: number): void {
-		this.x = x;
-		this.y = y;
-	}
-
 	public setContainerInteractive(interactive: boolean): void {
-		this._isContainerInteractive = interactive;
 		this.eventMode = interactive ? "static" : "auto";
 		this.cursor = interactive ? "pointer" : "default";
 
