@@ -103,53 +103,8 @@ export class CardContainer extends PixiContainer {
 		return false;
 	}
 
-	/**
-	 * Check if this container has any active transfer animations.
-	 */
-	public get hasActiveTransfers(): boolean {
-		return this._activeTransfers.size > 0;
-	}
-
-	/**
-	 * Cancel all active transfer animations for this container.
-	 * This can be useful for cleanup or when changing scenes.
-	 */
-	public cancelAllTransfers(): void {
-		this._activeTransfers.forEach((tween) => {
-			tween.kill();
-		});
-		this._activeTransfers.clear();
-	}
-
-	/**
-	 * Pause all active transfer animations for this container.
-	 */
-	public pauseAllTransfers(): void {
-		this._activeTransfers.forEach((tween) => {
-			tween.pause();
-		});
-	}
-
-	/**
-	 * Resume all paused transfer animations for this container.
-	 */
-	public resumeAllTransfers(): void {
-		this._activeTransfers.forEach((tween) => {
-			tween.resume();
-		});
-	}
-
-	public setMaxWidth(width: number): void {
-		this._maxWidth = width;
-		this.updateCardPositions();
-	}
-
-	public getCard(index: number): Card | undefined {
-		return this._cards[index];
-	}
-
 	public getAllCards(): Card[] {
-		return [...this._cards];
+		return this._cards;
 	}
 
 	public addCard(cardData: CardData): void {
@@ -612,7 +567,8 @@ export class CardContainer extends PixiContainer {
 		const totalCards = container._cards.length + 1; // +1 for the card that will be added
 
 		// Get card width from existing cards, or use a default if container is empty
-		let cardWidth = 100; // default
+		let cardWidth = 100;
+
 		if (container._cards.length > 0) {
 			cardWidth = container._cards[0].width;
 		} else if (this._cards.length > 0) {
@@ -648,6 +604,7 @@ export class CardContainer extends PixiContainer {
 		const startX = -totalWidth / 2 + cardWidth / 2;
 
 		let targetX: number;
+
 		if (overlap > 0) {
 			targetX = startX + cardIndex * (cardWidth - overlap);
 		} else {
