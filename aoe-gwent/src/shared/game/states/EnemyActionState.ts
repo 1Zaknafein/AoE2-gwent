@@ -30,6 +30,8 @@ export class EnemyActionState extends State {
 
 		await this._gameManager.handleAction(action);
 
+		await this.delay(0.5);
+
 		if (action.type === ActionType.PASS_TURN) {
 			await this.messageDisplay.showMessage("Opponent has passed");
 		}
