@@ -2,6 +2,8 @@ import { Text, TextStyle } from "pixi.js";
 import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { CardType } from "../../shared/types/CardTypes";
+import { CardEffect } from "./Card";
+import { WeatherEffect } from "./WeatherEffect";
 import { gsap } from "gsap";
 
 export interface PlayingRowConfig {
@@ -17,10 +19,12 @@ export interface PlayingRowConfig {
 export class PlayingRowContainer extends CardContainer {
 	private rowBackground: PixiGraphics;
 	private highlightOverlay: PixiGraphics;
+	private weatherEffect: WeatherEffect;
 	private typeIcon: PixiSprite;
 	private scoreText: Text;
 	private config: PlayingRowConfig;
 	private _score = 0;
+	private _weatherEffectApplied = false;
 
 	constructor(config: PlayingRowConfig) {
 		super(
@@ -34,6 +38,29 @@ export class PlayingRowContainer extends CardContainer {
 
 		this.rowBackground = this.createBackground();
 		this.highlightOverlay = this.createHighlight();
+
+		// Determine weather effect based on container type
+		let weatherEffect: CardEffect;
+		switch (config.containerType) {
+			case CardType.MELEE:
+				weatherEffect = CardEffect.FREEZE;
+				break;
+			case CardType.RANGED:
+				weatherEffect = CardEffect.FOG;
+				break;
+			case CardType.SIEGE:
+				weatherEffect = CardEffect.RAIN;
+				break;
+			default:
+				weatherEffect = CardEffect.FREEZE;
+		}
+
+		this.weatherEffect = new WeatherEffect(
+			weatherEffect,
+			config.width,
+			config.height
+		);
+
 		this.typeIcon = this.createTypeIcon();
 		this.scoreText = this.createScoreText();
 
@@ -41,11 +68,13 @@ export class PlayingRowContainer extends CardContainer {
 		this.addChild(this.highlightOverlay);
 		this.addChild(this.typeIcon);
 		this.addChild(this.scoreText);
+		this.addChild(this.weatherEffect); // Add weather effect last so it's on top
 
 		this.setCardsInteractive(false);
 
 		this.on("cardAdded", () => {
 			this.updateScore();
+			this.setChildIndex(this.weatherEffect, this.children.length - 1);
 		});
 
 		this.on("cardRemoved", () => {
@@ -87,7 +116,15 @@ export class PlayingRowContainer extends CardContainer {
 		let newScore = 0;
 
 		this.getAllCards().forEach((card) => {
-			newScore += card.cardData.score;
+			let cardScore = card.cardData.baseScore || card.cardData.score;
+
+			// Weather causes all unit cards to have score 1.
+			if (this._weatherEffectApplied) {
+				cardScore = 1;
+			}
+
+			card.setScore(cardScore);
+			newScore += cardScore;
 		});
 
 		this.scoreText.text = newScore.toString();
@@ -99,6 +136,26 @@ export class PlayingRowContainer extends CardContainer {
 	 */
 	public get score(): number {
 		return this._score;
+	}
+
+	/**
+	 * Apply weather effect overlay to the row
+	 */
+	public applyWeatherEffect(): void {
+		this.weatherEffect.show();
+		this._weatherEffectApplied = true;
+
+		this.updateScore();
+	}
+
+	/**
+	 * Remove weather effect overlay from the row
+	 */
+	public clearWeatherEffect(): void {
+		this.weatherEffect.hide();
+		this._weatherEffectApplied = false;
+
+		this.updateScore();
 	}
 
 	private createBackground(): PixiGraphics {

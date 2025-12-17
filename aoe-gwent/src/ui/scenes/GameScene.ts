@@ -31,7 +31,7 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	public readonly playerHand: HandContainer;
 	public readonly opponentHand: HandContainer;
 
-	public readonly weatherRow: CardContainer;
+	public readonly weatherRow: WeatherRowContainer;
 
 	public readonly playerDiscard: CardContainer;
 	public readonly opponentDiscard: CardContainer;

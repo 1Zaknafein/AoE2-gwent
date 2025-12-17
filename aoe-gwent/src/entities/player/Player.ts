@@ -5,6 +5,7 @@ import {
 	PlayingRowContainer,
 } from "../card";
 import { PlayerID } from "../../shared/types";
+import { WeatherRowContainer } from "../card/WeatherRowContainer";
 
 export class Player {
 	public readonly id: PlayerID;
@@ -13,7 +14,7 @@ export class Player {
 	public readonly ranged: PlayingRowContainer;
 	public readonly siege: PlayingRowContainer;
 	public readonly discarded: CardContainer;
-	public readonly weather: CardContainer;
+	public readonly weather: WeatherRowContainer;
 	public readonly deck: CardData[];
 
 	public score = 0;
@@ -58,5 +59,5 @@ export type PlayerData = {
 	ranged: PlayingRowContainer;
 	siege: PlayingRowContainer;
 	discarded: CardContainer;
-	weather: CardContainer;
+	weather: WeatherRowContainer;
 };

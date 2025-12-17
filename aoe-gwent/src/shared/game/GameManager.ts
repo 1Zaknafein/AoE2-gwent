@@ -1,3 +1,6 @@
+import { Card, CardType, PlayingRowContainer } from "../../entities/card";
+import { CardEffect } from "../../entities/card/Card";
+import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
 import { Player } from "../../entities/player/Player";
 import { CardDatabase, GamePhase } from "../../local-server";
 import {
@@ -16,6 +19,8 @@ export class GameManager {
 	private readonly _player: Player;
 	private readonly _enemy: Player;
 
+	private readonly _allPlayingRowContainers: PlayingRowContainer[];
+
 	private _playerScores: Map<PlayerID, number> = new Map();
 
 	constructor(player: Player, enemy: Player) {
@@ -29,6 +34,15 @@ export class GameManager {
 			roundWinner: null,
 			gameWinner: null,
 		};
+
+		this._allPlayingRowContainers = [
+			this._player.melee,
+			this._player.ranged,
+			this._player.siege,
+			this._enemy.melee,
+			this._enemy.ranged,
+			this._enemy.siege,
+		];
 	}
 
 	/**
@@ -145,10 +159,22 @@ export class GameManager {
 		const { player, card, targetRow } = action;
 
 		if (!card || !targetRow) {
-			throw new Error("Place card action missing card or targetRow");
+			throw new Error(
+				"Place card action missing card or targetRow" +
+					card?.cardData +
+					" " +
+					targetRow?.label
+			);
 		}
 
 		await player.hand.transferCardTo(card, targetRow);
+
+		if (
+			card.cardData.type === CardType.WEATHER &&
+			targetRow instanceof WeatherRowContainer
+		) {
+			this.handleWeatherEffect(card);
+		}
 
 		// New cards can affect both player and enemy scores, so update both.
 		this._player.updateScore();
@@ -178,7 +204,36 @@ export class GameManager {
 		}
 	}
 
+	private handleWeatherEffect(weatherCard: Card): void {
+		const effect = weatherCard.cardData.effect;
+
+		if (!effect) {
+			throw new Error("Weather card missing effect data");
+		}
+
+		switch (effect) {
+			case CardEffect.FREEZE:
+				this._player.melee.applyWeatherEffect();
+				this._enemy.melee.applyWeatherEffect();
+				break;
+			case CardEffect.FOG:
+				this._player.ranged.applyWeatherEffect();
+				this._enemy.ranged.applyWeatherEffect();
+				break;
+			case CardEffect.RAIN:
+				this._player.siege.applyWeatherEffect();
+				this._enemy.siege.applyWeatherEffect();
+				break;
+		}
+	}
+
 	private removeCardsFromBoard(): void {
+		this._player.weather.removeAllCards();
+
+		for (const rowContainer of this._allPlayingRowContainers) {
+			rowContainer.clearWeatherEffect();
+		}
+
 		this._player.melee.transferAllCardsTo(this._player.discarded);
 		this._enemy.melee.transferAllCardsTo(this._enemy.discarded);
 

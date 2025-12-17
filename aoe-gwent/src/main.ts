@@ -79,7 +79,8 @@ const boostsrap = async () => {
 				player.hand,
 				player.melee,
 				player.ranged,
-				player.siege
+				player.siege,
+				gameScene.weatherRow
 			);
 
 			gameScene.on("pointerup", () => interactionManager.handleGlobalClick());

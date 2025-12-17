@@ -38,6 +38,10 @@ export class Card extends Container {
 		super();
 		this._cardData = cardData;
 
+		if (cardData.baseScore === undefined) {
+			this._cardData.baseScore = cardData.score;
+		}
+
 		this.createCard();
 		this.interactive = true;
 		this.cursor = "pointer";
@@ -53,7 +57,6 @@ export class Card extends Container {
 		this._cardBack.visible = false;
 		this.addChild(this._cardBack);
 
-		// Get face texture from card ID using CardFaceTextures
 		const faceTexture = CardFaceTextures.getTexture(this._cardData.id);
 		this._cardFace = Sprite.from(faceTexture);
 		this._cardFace.anchor.set(0.5);
@@ -65,15 +68,13 @@ export class Card extends Container {
 
 		const radius = 25;
 
-		// Create radial gradient from bright yellow-orange center to darker orange edges
 		const gradient = new FillGradient(0, 0, 0, radius / 2)
-			.addColorStop(0, new Color("#00b6b3")) // Bright gold center
-			.addColorStop(1, new Color("#0079c0")); // Orange edges
+			.addColorStop(0, new Color("#00b6b3"))
+			.addColorStop(1, new Color("#0079c0"));
 
 		this._scoreBackground.circle(0, 0, radius);
 		this._scoreBackground.fill(gradient);
 
-		// Add black outline
 		this._scoreBackground.circle(0, 0, radius);
 		this._scoreBackground.stroke({
 			color: 0x000000,
@@ -142,7 +143,6 @@ export class Card extends Container {
 			// First update the card data while it's still showing back
 			this.updateCardData(newCardData);
 
-			// Animate scale to 0 (flip effect)
 			gsap.to(this.scale, {
 				x: 0,
 				duration: 0.15,
@@ -205,4 +205,13 @@ export interface CardData {
 	name: string;
 	score: number;
 	type: CardType;
+	effect?: CardEffect;
+	baseScore?: number;
+}
+
+export const enum CardEffect {
+	FREEZE = "freeze",
+	FOG = "fog",
+	RAIN = "rain",
+	CLEAR = "clear",
 }

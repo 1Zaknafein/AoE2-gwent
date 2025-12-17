@@ -2,6 +2,7 @@ import { Card } from "../../entities/card/Card";
 import { PlayingRowContainer, HandContainer } from "../../entities/card";
 import { CardType } from "../../shared/types/CardTypes";
 import { gsap } from "gsap";
+import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
 
 /**
  * Manages user interactions with the game board.
@@ -15,17 +16,29 @@ export class GameBoardInteractionManager {
 	private playerMeleeRow: PlayingRowContainer;
 	private playerRangedRow: PlayingRowContainer;
 	private playerSiegeRow: PlayingRowContainer;
+	private weatherRow: WeatherRowContainer;
+
+	private allRows: (PlayingRowContainer | WeatherRowContainer)[] = [];
 
 	constructor(
 		playerHand: HandContainer,
 		playerMeleeRow: PlayingRowContainer,
 		playerRangedRow: PlayingRowContainer,
-		playerSiegeRow: PlayingRowContainer
+		playerSiegeRow: PlayingRowContainer,
+		weatherRow: WeatherRowContainer
 	) {
 		this.playerHand = playerHand;
 		this.playerMeleeRow = playerMeleeRow;
 		this.playerRangedRow = playerRangedRow;
 		this.playerSiegeRow = playerSiegeRow;
+		this.weatherRow = weatherRow;
+
+		this.allRows = [
+			this.playerMeleeRow,
+			this.playerRangedRow,
+			this.playerSiegeRow,
+			this.weatherRow,
+		];
 
 		this.setupPlayerHandInteractions();
 		this.setupRowInteractions();
@@ -59,20 +72,14 @@ export class GameBoardInteractionManager {
 	 * Set up row click handlers for placing cards
 	 */
 	public setupRowInteractions(): void {
-		const playableRows = [
-			this.playerMeleeRow,
-			this.playerRangedRow,
-			this.playerSiegeRow,
-		];
-
-		playableRows.forEach((row) => {
+		for (const row of this.allRows) {
 			row.setContainerInteractive(true);
 			row.on("containerClick", () => {
 				if (this.selectedCard) {
 					this.notifyCardAction(row);
 				}
 			});
-		});
+		}
 	}
 
 	/**
@@ -160,7 +167,7 @@ export class GameBoardInteractionManager {
 	}
 
 	private async notifyCardAction(
-		targetRow: PlayingRowContainer
+		targetRow: PlayingRowContainer | WeatherRowContainer
 	): Promise<void> {
 		if (!this.selectedCard) return;
 
@@ -177,7 +184,7 @@ export class GameBoardInteractionManager {
 	}
 
 	private highlightValidRows(cardType: CardType): void {
-		let validRow: PlayingRowContainer | null = null;
+		let validRow: PlayingRowContainer | WeatherRowContainer | null = null;
 
 		switch (cardType) {
 			case CardType.MELEE:
@@ -189,6 +196,8 @@ export class GameBoardInteractionManager {
 			case CardType.SIEGE:
 				validRow = this.playerSiegeRow;
 				break;
+			case CardType.WEATHER:
+				validRow = this.weatherRow;
 		}
 
 		if (!validRow) return;
@@ -197,10 +206,8 @@ export class GameBoardInteractionManager {
 	}
 
 	private clearRowHighlights(): void {
-		[this.playerMeleeRow, this.playerRangedRow, this.playerSiegeRow].forEach(
-			(row) => {
-				row.hideHighlight();
-			}
-		);
+		for (const row of this.allRows) {
+			row.hideHighlight();
+		}
 	}
 }

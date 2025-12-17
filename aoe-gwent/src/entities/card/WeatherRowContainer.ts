@@ -16,7 +16,7 @@ export class WeatherRowContainer extends CardContainer {
 	private config: WeatherRowConfig;
 
 	constructor(config: WeatherRowConfig) {
-		super(config.width - 200, config.containerType);
+		super(config.width, config.containerType);
 
 		this.config = config;
 
@@ -35,7 +35,7 @@ export class WeatherRowContainer extends CardContainer {
 		gsap.killTweensOf(this.highlightOverlay);
 
 		this.highlightOverlay.visible = true;
-		this.highlightOverlay.alpha = 0.4;
+		this.highlightOverlay.alpha = 0.3;
 	}
 
 	/**

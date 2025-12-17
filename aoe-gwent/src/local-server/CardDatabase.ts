@@ -1,4 +1,5 @@
 import { CardData } from "../entities/card";
+import { CardEffect } from "../entities/card/Card";
 import { CardType } from "../shared/types/CardTypes";
 
 /**
@@ -54,6 +55,34 @@ export class CardDatabase {
 			name: "Archer",
 			score: 2,
 			type: CardType.RANGED,
+		},
+		{
+			id: 101,
+			name: "Frost",
+			score: 0,
+			type: CardType.WEATHER,
+			effect: CardEffect.FREEZE,
+		},
+		{
+			id: 102,
+			name: "Fog",
+			score: 0,
+			type: CardType.WEATHER,
+			effect: CardEffect.FOG,
+		},
+		{
+			id: 103,
+			name: "Rain",
+			score: 0,
+			type: CardType.WEATHER,
+			effect: CardEffect.RAIN,
+		},
+		{
+			id: 104,
+			name: "Clear",
+			score: 0,
+			type: CardType.WEATHER,
+			effect: CardEffect.CLEAR,
 		},
 	] as const;
 }

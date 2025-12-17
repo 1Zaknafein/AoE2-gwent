@@ -1,6 +1,6 @@
 import { ActionType, PlayerAction } from "./GameTypes";
 import { Player, PlayerData } from "../entities/player/Player";
-import { CardContainer } from "../entities/card";
+import { CardContainer, CardType } from "../entities/card";
 
 /**
  * AI opponent for local games
@@ -16,9 +16,10 @@ export class BotPlayer extends Player {
 
 		this._otherPlayer = otherPlayer;
 
-		this._containerMap.set("melee", this.melee);
-		this._containerMap.set("ranged", this.ranged);
-		this._containerMap.set("siege", this.siege);
+		this._containerMap.set(CardType.MELEE, this.melee);
+		this._containerMap.set(CardType.RANGED, this.ranged);
+		this._containerMap.set(CardType.SIEGE, this.siege);
+		this._containerMap.set(CardType.WEATHER, this.weather);
 		this._containerMap.set("hand", this.hand);
 	}
 

@@ -7,7 +7,6 @@ import {
 } from "../../../local-server/GameTypes";
 import { Player } from "../../../entities/player/Player";
 import { GameManager } from "../GameManager";
-import { CardType } from "../../types/CardTypes";
 import { Card, CardContainer } from "../../../entities/card";
 
 /**
