@@ -1,6 +1,6 @@
 import { Graphics } from "pixi.js";
 import { PixiGraphics } from "../../plugins/engine";
-import { CardContainer } from "./CardContainer";
+import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { gsap } from "gsap";
 import { PlayingRowConfig } from "./PlayingRowContainer";
 
@@ -16,7 +16,12 @@ export class WeatherRowContainer extends CardContainer {
 	private config: WeatherRowConfig;
 
 	constructor(config: WeatherRowConfig) {
-		super(config.width, config.containerType);
+		super(
+			config.width,
+			config.containerType,
+			CardContainerLayoutType.SPREAD,
+			0.5
+		);
 
 		this.config = config;
 

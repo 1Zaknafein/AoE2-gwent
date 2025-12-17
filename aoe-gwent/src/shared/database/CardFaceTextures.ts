@@ -9,6 +9,9 @@ export class CardFaceTextures {
 		4: "light_cavalry",
 		5: "teutonic_knight",
 		6: "archer",
+		101: "freeze",
+		103: "rain",
+		104: "clear",
 	};
 
 	/**

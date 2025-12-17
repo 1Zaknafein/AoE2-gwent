@@ -14,10 +14,10 @@ export class Card extends Container {
 	private _cardData: CardData;
 	private _cardBack!: Sprite;
 	private _cardFace!: Sprite;
-	private _scoreText!: Text;
 	private _typeIcon!: Sprite;
-	private _scoreBackground!: Graphics;
+	private _scoreBackground?: Graphics;
 	private _showingBack: boolean = false;
+	private _scoreText?: Text;
 
 	private static SCORE_TEXT_STYLE: Partial<TextStyle> = {
 		fontFamily: "Arial",
@@ -64,10 +64,20 @@ export class Card extends Container {
 		this._cardFace.scale.set(0.5);
 		this.addChild(this._cardFace);
 
+		const iconTexture = `icon_${this._cardData.type}`;
+		this._typeIcon = Sprite.from(iconTexture);
+		this._typeIcon.anchor.set(0.5);
+		this._typeIcon.scale.set(1.2);
+		this._typeIcon.x = (this._cardFace.width - this._typeIcon.width) / 2;
+		this._typeIcon.y = (this._cardFace.height - this._typeIcon.height) / 2;
+		this._typeIcon.visible = true;
+		this.addChild(this._typeIcon);
+
+		if (this.cardData.score === 0) return;
+
 		this._scoreBackground = new Graphics();
 
 		const radius = 25;
-
 		const gradient = new FillGradient(0, 0, 0, radius / 2)
 			.addColorStop(0, new Color("#00b6b3"))
 			.addColorStop(1, new Color("#0079c0"));
@@ -96,16 +106,8 @@ export class Card extends Container {
 		this._scoreText.x = this._scoreBackground.x;
 		this._scoreText.y = this._scoreBackground.y;
 		this._scoreText.visible = true;
-		this.addChild(this._scoreText);
 
-		const iconTexture = `icon_${this._cardData.type}`;
-		this._typeIcon = Sprite.from(iconTexture);
-		this._typeIcon.anchor.set(0.5);
-		this._typeIcon.scale.set(1.2);
-		this._typeIcon.x = (this._cardFace.width - this._typeIcon.width) / 2;
-		this._typeIcon.y = (this._cardFace.height - this._typeIcon.height) / 2;
-		this._typeIcon.visible = true;
-		this.addChild(this._typeIcon);
+		this.addChild(this._scoreText);
 	}
 
 	public get showingBack(): boolean {
@@ -114,7 +116,10 @@ export class Card extends Container {
 
 	public setScore(newScore: number): void {
 		this._cardData.score = newScore;
-		this._scoreText.text = newScore.toString();
+
+		if (this._scoreText) {
+			this._scoreText.text = newScore.toString();
+		}
 	}
 
 	/**
@@ -128,7 +133,9 @@ export class Card extends Container {
 		const faceTexture = CardFaceTextures.getTexture(newCardData.id);
 		this._cardFace.texture = Sprite.from(faceTexture).texture;
 
-		this._scoreText.text = newCardData.score.toString();
+		if (this._scoreText) {
+			this._scoreText.text = newCardData.score.toString();
+		}
 
 		const iconTexture = `icon_${newCardData.type}`;
 		this._typeIcon.texture = Sprite.from(iconTexture).texture;
@@ -171,9 +178,15 @@ export class Card extends Container {
 		this._showingBack = true;
 		this._cardBack.visible = true;
 		this._cardFace.visible = false;
-		this._scoreText.visible = false;
-		this._scoreBackground.visible = false;
 		this._typeIcon.visible = false;
+
+		if (this._scoreText) {
+			this._scoreText.visible = false;
+		}
+
+		if (this._scoreBackground) {
+			this._scoreBackground.visible = false;
+		}
 	}
 
 	/**
@@ -184,9 +197,15 @@ export class Card extends Container {
 		this._showingBack = false;
 		this._cardBack.visible = false;
 		this._cardFace.visible = true;
-		this._scoreText.visible = true;
-		this._scoreBackground.visible = true;
 		this._typeIcon.visible = true;
+
+		if (this._scoreBackground) {
+			this._scoreBackground.visible = true;
+		}
+
+		if (this._scoreText) {
+			this._scoreText.visible = true;
+		}
 	}
 }
 

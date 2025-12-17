@@ -25,6 +25,10 @@ export const options: LoaderOptions = {
 					icon_ranged: "./sprites/cards/icon_ranged.png",
 					icon_ranged_melee: "./sprites/cards/icon_ranged_melee.png",
 					icon_siege: "./sprites/cards/icon_siege.png",
+
+					clear: "./sprites/cards/card_faces/clear.png",
+					rain: "./sprites/cards/card_faces/rain.png",
+					freeze: "./sprites/cards/card_faces/freeze.png",
 				},
 			},
 			{
