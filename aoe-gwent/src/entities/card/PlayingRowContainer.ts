@@ -129,6 +129,8 @@ export class PlayingRowContainer extends CardContainer {
 
 		this.scoreText.text = newScore.toString();
 		this._score = newScore;
+
+		this.emit("scoreUpdated", { container: this, score: newScore });
 	}
 
 	/**

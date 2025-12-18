@@ -7,10 +7,6 @@ import {
 } from "../../entities/card";
 import { CardType } from "../../shared/types/CardTypes";
 import { Deck } from "../../entities/deck";
-import {
-	PlayerDisplayManager,
-	PlayerDisplayManagerConfig,
-} from "../../entities/player";
 import { GameSceneBuildHelper } from "./GameSceneBuildHelper";
 import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
 import { Assets, Container, FillGradient, Graphics, Sprite } from "pixi.js";
@@ -53,8 +49,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 	private playerDeck!: Deck;
 	private opponentDeck!: Deck;
-
-	private playerDisplayManager!: PlayerDisplayManager;
 
 	constructor() {
 		super();
@@ -149,9 +143,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 		this.createDecks();
 
-		// TODO Move this to main.ts or at least separate class
-		this.createPlayerDisplaySystem();
-
 		this.resize(Manager.width, Manager.height);
 	}
 
@@ -182,59 +173,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		graphics.rect(0, 0, width, height).fill(gradient);
 
 		return graphics;
-	}
-
-	private createPlayerDisplaySystem(): void {
-		const config: PlayerDisplayManagerConfig = {
-			playerName: "PLAYER",
-			enemyName: "OPPONENT",
-			playerPosition: { x: -20, y: 950 },
-			enemyPosition: { x: -20, y: 200 },
-		};
-
-		this.playerDisplayManager = new PlayerDisplayManager(config);
-		this.gameBoard.addChild(this.playerDisplayManager);
-
-		const playerContainers = [
-			this.playerMeleeRow,
-			this.playerRangedRow,
-			this.playerSiegeRow,
-		];
-		const opponentContainers = [
-			this.opponentMeleeRow,
-			this.opponentRangedRow,
-			this.opponentSiegeRow,
-		];
-
-		this.playerDisplayManager.setupScoreTracking(
-			playerContainers,
-			opponentContainers
-		);
-
-		this.setupHandCountTracking();
-		this.updatePlayerDisplayHandCounts();
-
-		this.playerDisplayManager.positionDisplayElements();
-	}
-
-	private setupHandCountTracking(): void {
-		const updateHandCounts = () => this.updatePlayerDisplayHandCounts();
-
-		this.playerHand.on("cardAdded", updateHandCounts);
-		this.playerHand.on("cardRemoved", updateHandCounts);
-		this.opponentHand.on("cardAdded", updateHandCounts);
-		this.opponentHand.on("cardRemoved", updateHandCounts);
-	}
-
-	private updatePlayerDisplayHandCounts(): void {
-		if (this.playerDisplayManager) {
-			const playerHandCount = this.playerHand.cardCount;
-			const opponentHandCount = this.opponentHand.cardCount;
-			this.playerDisplayManager.updateHandCounts(
-				playerHandCount,
-				opponentHandCount
-			);
-		}
 	}
 
 	/**
@@ -291,12 +229,5 @@ export class GameScene extends PixiContainer implements SceneInterface {
 
 		this.gameBoard.x = offsetX;
 		this.gameBoard.y = offsetY;
-	}
-
-	/**
-	 * Get player display manager
-	 */
-	public getPlayerDisplayManager(): PlayerDisplayManager {
-		return this.playerDisplayManager;
 	}
 }

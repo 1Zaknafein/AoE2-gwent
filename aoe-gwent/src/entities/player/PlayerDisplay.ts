@@ -65,7 +65,6 @@ export class PlayerDisplay extends PixiContainer {
 	}
 
 	public setRoundWins(roundsWon: number): void {
-		// Update visual state of gems based on rounds won (0, 1, or 2)
 		this.roundWin1.clear();
 		this.roundWin2.clear();
 
@@ -98,39 +97,15 @@ export class PlayerDisplay extends PixiContainer {
 	}
 
 	public watchContainers(containers: CardContainer[]): void {
-		this.unwatchContainers();
-
 		this._watchedContainers = containers;
 
 		containers.forEach((container) => {
-			const updateScore = () => this.updateTotalScore();
-			container.on("cardAdded", updateScore);
-			container.on("cardRemoved", updateScore);
+			container.on("scoreUpdated", this.updateTotalScore.bind(this));
 		});
 
 		this.updateTotalScore();
 	}
 
-	/**
-	 * Remove listeners from watched containers.
-	 */
-	public unwatchContainers(): void {
-		this._watchedContainers.forEach((container) => {
-			container.off("cardAdded", this.updateTotalScore);
-			container.off("cardRemoved", this.updateTotalScore);
-		});
-		this._watchedContainers = [];
-	}
-
-	/**
-	 * Cleanup method to remove all event listeners.
-	 */
-	public destroy(): void {
-		this.unwatchContainers();
-		super.destroy();
-	}
-
-	// Private Methods
 	private createTextStyles(): void {
 		const nameStyle = new TextStyle({
 			fontFamily: "Arial",
@@ -243,9 +218,6 @@ export class PlayerDisplay extends PixiContainer {
 
 		this.addChild(this.roundWin1);
 		this.addChild(this.roundWin2);
-
-		// Set initial state - 1 round won for testing
-		this.setRoundWins(1);
 	}
 
 	private drawRoundGem(gem: Graphics, isWon: boolean): void {

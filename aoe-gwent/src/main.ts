@@ -21,6 +21,10 @@ import { Player } from "./entities/player/Player";
 import { MessageDisplay } from "./ui/components";
 import { GameBoardInteractionManager } from "./ui/scenes/GameBoardInteractionManager";
 import { BotPlayer } from "./local-server";
+import {
+	PlayerDisplayManager,
+	PlayerDisplayManagerConfig,
+} from "./entities/player";
 
 const boostsrap = async () => {
 	const appOptions: Partial<IPixiApplicationOptions> = {
@@ -69,6 +73,20 @@ const boostsrap = async () => {
 				player
 			);
 
+			const config: PlayerDisplayManagerConfig = {
+				playerName: "PLAYER",
+				enemyName: "OPPONENT",
+				playerPosition: { x: -20, y: 950 },
+				enemyPosition: { x: -20, y: 200 },
+			};
+
+			const playerDisplayManager = new PlayerDisplayManager(
+				config,
+				player,
+				enemy
+			);
+			gameScene.gameBoard.addChild(playerDisplayManager);
+
 			const messageDisplay = new MessageDisplay();
 			messageDisplay.x = gameScene.boardWidth / 2;
 			messageDisplay.y = gameScene.boardHeight / 2;
@@ -85,12 +103,12 @@ const boostsrap = async () => {
 
 			gameScene.on("pointerup", () => interactionManager.handleGlobalClick());
 
-			const gameManager = new GameManager(player, enemy);
+			const gameManager = new GameManager(player, enemy, playerDisplayManager);
 
 			const context: GameContext = {
 				gameManager,
 				messageDisplay: messageDisplay,
-				playerDisplayManager: gameScene.getPlayerDisplayManager(),
+				playerDisplayManager,
 				interactionManager,
 				player,
 				enemy,

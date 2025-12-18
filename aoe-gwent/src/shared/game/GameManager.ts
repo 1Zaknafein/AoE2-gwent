@@ -1,6 +1,7 @@
 import { Card, CardType, PlayingRowContainer } from "../../entities/card";
 import { CardEffect } from "../../entities/card/Card";
 import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
+import { PlayerDisplayManager } from "../../entities/player";
 import { Player } from "../../entities/player/Player";
 import { CardDatabase, GamePhase } from "../../local-server";
 import {
@@ -20,12 +21,19 @@ export class GameManager {
 	private readonly _enemy: Player;
 
 	private readonly _allPlayingRowContainers: PlayingRowContainer[];
+	private readonly _playerDisplayManager: PlayerDisplayManager;
 
 	private _playerScores: Map<PlayerID, number> = new Map();
 
-	constructor(player: Player, enemy: Player) {
+	constructor(
+		player: Player,
+		enemy: Player,
+		playerDisplayManager: PlayerDisplayManager
+	) {
 		this._player = player;
 		this._enemy = enemy;
+
+		this._playerDisplayManager = playerDisplayManager;
 
 		this.gameData = {
 			phase: GamePhase.WAITING_FOR_ROUND_START,
@@ -58,6 +66,9 @@ export class GameManager {
 		this._player.hand.addCardsBatch(this._player.deck.splice(0, 10));
 		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 10));
 		this._enemy.hand.hideCards();
+
+		this._playerDisplayManager.playerDisplay.setRoundWins(0);
+		this._playerDisplayManager.enemyDisplay.setRoundWins(0);
 	}
 
 	/**
@@ -87,11 +98,15 @@ export class GameManager {
 			this._playerScores.set(this._player.id, currentScore + 1);
 
 			roundWinner = this._player.id;
+
+			this._playerDisplayManager.playerDisplay.setRoundWins(currentScore + 1);
 		} else if (this._enemy.score > this._player.score) {
 			const currentScore = this._playerScores.get(this._enemy.id)!;
 			this._playerScores.set(this._enemy.id, currentScore + 1);
 
 			roundWinner = this._enemy.id;
+
+			this._playerDisplayManager.enemyDisplay.setRoundWins(currentScore + 1);
 		} else {
 			// If it's a tie, both players get a point
 			const playerCurrentScore = this._playerScores.get(this._player.id)!;
@@ -99,6 +114,13 @@ export class GameManager {
 
 			const enemyCurrentScore = this._playerScores.get(this._enemy.id)!;
 			this._playerScores.set(this._enemy.id, enemyCurrentScore + 1);
+
+			this._playerDisplayManager.enemyDisplay.setRoundWins(
+				enemyCurrentScore + 1
+			);
+			this._playerDisplayManager.playerDisplay.setRoundWins(
+				playerCurrentScore + 1
+			);
 		}
 
 		// Game is BO3, players get a score point for winning a round.

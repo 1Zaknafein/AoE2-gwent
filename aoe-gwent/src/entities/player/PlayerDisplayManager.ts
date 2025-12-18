@@ -1,6 +1,6 @@
 import { PixiContainer } from "../../plugins/engine";
 import { PlayerDisplay, PlayerDisplayData } from "./PlayerDisplay";
-import { CardContainer } from "../card";
+import { Player } from "./Player";
 
 export interface PlayerDisplayManagerConfig {
 	playerName: string;
@@ -10,10 +10,14 @@ export interface PlayerDisplayManagerConfig {
 }
 
 export class PlayerDisplayManager extends PixiContainer {
-	private _playerDisplay: PlayerDisplay;
-	private _enemyDisplay: PlayerDisplay;
+	private readonly _playerDisplay: PlayerDisplay;
+	private readonly _enemyDisplay: PlayerDisplay;
 
-	constructor(config: PlayerDisplayManagerConfig) {
+	constructor(
+		config: PlayerDisplayManagerConfig,
+		player: Player,
+		enemy: Player
+	) {
 		super();
 
 		const playerData: PlayerDisplayData = {
@@ -31,6 +35,27 @@ export class PlayerDisplayManager extends PixiContainer {
 		};
 		this._enemyDisplay = new PlayerDisplay(enemyData);
 		this.addChild(this._enemyDisplay);
+
+		const updateHandCounts = () =>
+			this.updateHandCounts(player.hand.cardCount, enemy.hand.cardCount);
+
+		player.hand.on("cardAdded", updateHandCounts);
+		player.hand.on("cardRemoved", updateHandCounts);
+
+		enemy.hand.on("cardAdded", updateHandCounts);
+		enemy.hand.on("cardRemoved", updateHandCounts);
+
+		this._playerDisplay.watchContainers([
+			player.melee,
+			player.ranged,
+			player.siege,
+		]);
+
+		this._enemyDisplay.watchContainers([
+			enemy.melee,
+			enemy.ranged,
+			enemy.siege,
+		]);
 	}
 
 	/**
@@ -45,19 +70,6 @@ export class PlayerDisplayManager extends PixiContainer {
 	 */
 	public get enemyDisplay(): PlayerDisplay {
 		return this._enemyDisplay;
-	}
-
-	/**
-	 * Set up score tracking for both players.
-	 * @param playerContainers Array of CardContainer instances for the player
-	 * @param enemyContainers Array of CardContainer instances for the enemy
-	 */
-	public setupScoreTracking(
-		playerContainers: CardContainer[],
-		enemyContainers: CardContainer[]
-	): void {
-		this._playerDisplay.watchContainers(playerContainers);
-		this._enemyDisplay.watchContainers(enemyContainers);
 	}
 
 	/**
@@ -85,24 +97,5 @@ export class PlayerDisplayManager extends PixiContainer {
 	public positionDisplayElements(): void {
 		this._playerDisplay.positionElements();
 		this._enemyDisplay.positionElements();
-	}
-
-	/**
-	 * Get total scores for both players.
-	 */
-	public getScores(): { player: number; enemy: number } {
-		return {
-			player: this._playerDisplay.totalScore,
-			enemy: this._enemyDisplay.totalScore,
-		};
-	}
-
-	/**
-	 * Cleanup method to remove all event listeners.
-	 */
-	public destroy(): void {
-		this._playerDisplay.destroy();
-		this._enemyDisplay.destroy();
-		super.destroy();
 	}
 }
