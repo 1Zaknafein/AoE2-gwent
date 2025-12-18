@@ -77,19 +77,19 @@ export class PlayerDisplay extends PixiContainer {
 
 	public positionElements(): void {
 		const padding = 20;
-		const bgWidth = 400;
-		const bgHeight = 180;
+		const bgWidth = this.displayBackground.width;
+		const bgHeight = this.displayBackground.height;
 
 		this.playerNameText.position.set(bgWidth / 2, padding + 15);
 
-		this.roundWin1.position.set(45, 70);
-		this.roundWin2.position.set(105, 70);
+		this.roundWin1.position.set(40, 100);
+		this.roundWin2.position.set(100, 100);
 
-		this.scoreLabel.position.set(bgWidth / 2, 65);
-		this.totalScoreText.position.set(bgWidth / 2, 105);
+		this.scoreLabel.position.set(bgWidth / 2, 75);
+		this.totalScoreText.position.set(bgWidth / 2, 115);
 
-		this.handLabel.position.set(bgWidth - 60, 65);
-		this.handCountText.position.set(bgWidth - 60, 100);
+		this.handLabel.position.set(bgWidth - 60, 75);
+		this.handCountText.position.set(this.handLabel.x, 110);
 
 		if (this.passButton) {
 			this.passButton.position.set(0, bgHeight + 20);
@@ -188,7 +188,7 @@ export class PlayerDisplay extends PixiContainer {
 	}
 
 	private createDisplayBackground(): void {
-		const width = 400;
+		const width = 360;
 		const height = 180;
 
 		this.displayBackground = new Graphics();

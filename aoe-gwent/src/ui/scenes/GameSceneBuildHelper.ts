@@ -1,6 +1,5 @@
 import { Graphics } from "pixi.js";
 import {
-	Card,
 	CardContainer,
 	CardContainerLayoutType,
 	CardType,
@@ -11,7 +10,7 @@ import {
 export class GameSceneBuildHelper {
 	private readonly _rowHeight: number;
 	private readonly _rowWidth: number;
-	private readonly _labelColor = 0xff6b6b;
+	private readonly _labelColor = 0xfbda7e;
 
 	public constructor(rowHeight: number, rowWidth: number) {
 		this._rowHeight = rowHeight;

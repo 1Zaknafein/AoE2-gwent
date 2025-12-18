@@ -60,7 +60,7 @@ export class WeatherRowContainer extends CardContainer {
 	}
 
 	private createBackground(): Graphics {
-		const weatherWidth = 350;
+		const weatherWidth = 360;
 		const weatherHeight = 130;
 
 		const bg = new Graphics();

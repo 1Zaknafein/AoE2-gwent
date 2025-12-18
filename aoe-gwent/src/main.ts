@@ -76,8 +76,8 @@ const boostsrap = async () => {
 			const config: PlayerDisplayManagerConfig = {
 				playerName: "PLAYER",
 				enemyName: "OPPONENT",
-				playerPosition: { x: -20, y: 950 },
-				enemyPosition: { x: -20, y: 200 },
+				playerPosition: { x: 16, y: 950 },
+				enemyPosition: { x: 16, y: 200 },
 			};
 
 			const playerDisplayManager = new PlayerDisplayManager(

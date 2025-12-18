@@ -8,7 +8,7 @@ export class PassButton extends Button {
 	private _enabled: boolean = false;
 
 	constructor(onClick: () => void) {
-		const width = 400;
+		const width = 360;
 		const height = 80;
 		super(onClick, width, height);
 
