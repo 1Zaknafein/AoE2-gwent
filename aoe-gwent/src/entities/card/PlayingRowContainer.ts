@@ -1,8 +1,7 @@
 import { Text, TextStyle } from "pixi.js";
 import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
-import { CardType } from "../../shared/types/CardTypes";
-import { CardEffect } from "./Card";
+import { CardEffect, CardType } from "./Card";
 import { WeatherEffect } from "./WeatherEffect";
 import { gsap } from "gsap";
 

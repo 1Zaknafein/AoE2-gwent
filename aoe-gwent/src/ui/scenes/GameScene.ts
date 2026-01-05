@@ -4,8 +4,8 @@ import {
 	PlayingRowContainer,
 	HandContainer,
 	CardContainer,
+	CardType,
 } from "../../entities/card";
-import { CardType } from "../../shared/types/CardTypes";
 import { Deck } from "../../entities/deck";
 import { GameSceneBuildHelper } from "./GameSceneBuildHelper";
 import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
