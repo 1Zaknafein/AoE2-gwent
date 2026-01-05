@@ -1,6 +1,5 @@
 import { CardData } from "../entities/card";
-import { CardEffect } from "../entities/card/Card";
-import { CardType } from "../shared/types/CardTypes";
+import { CardEffect, CardType } from "../entities/card/Card";
 
 /**
  * Local card database that stores card definitions.

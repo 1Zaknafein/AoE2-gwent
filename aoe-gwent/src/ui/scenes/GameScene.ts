@@ -10,6 +10,7 @@ import { Deck } from "../../entities/deck";
 import { GameSceneBuildHelper } from "./GameSceneBuildHelper";
 import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
 import { Assets, Container, FillGradient, Graphics, Sprite } from "pixi.js";
+import { CardPreview } from "../../entities/card/CardPreview";
 
 /**
  * Game scene containing all board elements.
@@ -39,6 +40,8 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	public readonly bgLeftGradient: Graphics;
 	public readonly bgRightGradient: Graphics;
 	public readonly background: Graphics;
+
+	public readonly cardPreview: CardPreview;
 
 	public readonly boardWidth = 2400;
 	public readonly boardHeight = 1350;
@@ -120,6 +123,12 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		this.opponentDiscard = helper.createDiscardPile();
 		this.opponentDiscard.position.set(2100, 108);
 
+		this.cardPreview = new CardPreview();
+		this.cardPreview.position.set(
+			this.boardWidth - 200,
+			this.boardHeight / 2 - 150
+		);
+
 		this.gameBoard.addChild(
 			this.background,
 			this.backgroundImage,
@@ -138,7 +147,8 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.playerDiscard,
 			this.opponentDiscard,
 			this.opponentHand,
-			this.playerHand
+			this.playerHand,
+			this.cardPreview
 		);
 
 		this.createDecks();

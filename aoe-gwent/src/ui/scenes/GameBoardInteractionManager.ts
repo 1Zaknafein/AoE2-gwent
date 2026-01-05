@@ -1,6 +1,5 @@
-import { Card } from "../../entities/card/Card";
+import { Card, CardType } from "../../entities/card/Card";
 import { PlayingRowContainer, HandContainer } from "../../entities/card";
-import { CardType } from "../../shared/types/CardTypes";
 import { gsap } from "gsap";
 import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
 

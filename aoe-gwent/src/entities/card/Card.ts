@@ -215,7 +215,7 @@ export enum CardType {
 	SIEGE = "siege",
 	RANGED_MELEE = "ranged_melee", // Can be placed in either melee or ranged rows
 	WEATHER = "weather",
-	BOOST = "boost",
+
 	SPECIAL = "special",
 }
 
@@ -233,4 +233,5 @@ export const enum CardEffect {
 	FOG = "fog",
 	RAIN = "rain",
 	CLEAR = "clear",
+	BOOST = "boost",
 }
