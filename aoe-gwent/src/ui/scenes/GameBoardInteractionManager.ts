@@ -2,12 +2,13 @@ import { Card, CardType } from "../../entities/card/Card";
 import { PlayingRowContainer, HandContainer } from "../../entities/card";
 import { gsap } from "gsap";
 import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
+import { EventEmitter } from "pixi.js";
 
 /**
  * Manages user interactions with the game board.
  * Handles card selection, hover effects, and placement logic
  */
-export class GameBoardInteractionManager {
+export class GameBoardInteractionManager extends EventEmitter {
 	private selectedCard: Card | null = null;
 	private cardClickInProgress = false;
 
@@ -26,6 +27,8 @@ export class GameBoardInteractionManager {
 		playerSiegeRow: PlayingRowContainer,
 		weatherRow: WeatherRowContainer
 	) {
+		super();
+
 		this.playerHand = playerHand;
 		this.playerMeleeRow = playerMeleeRow;
 		this.playerRangedRow = playerRangedRow;
@@ -137,6 +140,8 @@ export class GameBoardInteractionManager {
 			this.deselectCard();
 		}
 
+		this.emit("cardSelected", card);
+
 		this.selectedCard = card;
 
 		// Lift card up
@@ -153,6 +158,8 @@ export class GameBoardInteractionManager {
 		if (!this.selectedCard) return;
 
 		const card = this.selectedCard;
+
+		this.emit("cardDeselected");
 
 		gsap.to(card, {
 			y: 0,

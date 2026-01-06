@@ -4,6 +4,7 @@ import { PlayerDisplayManager } from "../../entities/player";
 import { GameBoardInteractionManager } from "../../ui/scenes/GameBoardInteractionManager";
 import { Player } from "../../entities/player/Player";
 import { BotPlayer } from "../../local-server";
+import { GameScene } from "../../ui/scenes/GameScene";
 
 /**
  * GameContext - Container for all dependencies that states may need
@@ -11,6 +12,7 @@ import { BotPlayer } from "../../local-server";
 export interface GameContext {
 	gameManager: GameManager;
 	messageDisplay: MessageDisplay;
+	gameScene: GameScene;
 	playerDisplayManager: PlayerDisplayManager;
 	interactionManager: GameBoardInteractionManager;
 	player: Player;

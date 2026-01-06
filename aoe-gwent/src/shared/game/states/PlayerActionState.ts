@@ -8,6 +8,8 @@ import {
 import { Player } from "../../../entities/player/Player";
 import { GameManager } from "../GameManager";
 import { Card, CardContainer } from "../../../entities/card";
+import { GameBoardInteractionManager } from "../../../ui/scenes/GameBoardInteractionManager";
+import { CardPreview } from "../../../entities/card/CardPreview";
 
 /**
  * State where player can interact and take actions.
@@ -17,12 +19,17 @@ export class PlayerActionState extends State {
 
 	private readonly _player: Player;
 	private readonly _gameManager: GameManager;
+	private readonly _interactionManager: GameBoardInteractionManager;
+	private readonly _cardPreview: CardPreview;
 
 	constructor(context: GameContext) {
 		super(context);
 
 		this._player = context.player;
 		this._gameManager = context.gameManager;
+		this._interactionManager = context.interactionManager;
+
+		this._cardPreview = context.gameScene.cardPreview;
 	}
 
 	public async execute(): Promise<StateName> {
@@ -94,7 +101,17 @@ export class PlayerActionState extends State {
 				throw new Error("Pass button not found on player display");
 			}
 
+			const onCardSelected = (card: Card) => {
+				this._cardPreview.show(card.cardData);
+			};
+
+			const onCardDeselected = () => {
+				this._cardPreview.hide();
+			};
+
 			const onCardPlaced = (card: Card, targetRowType: CardContainer) => {
+				this._cardPreview.hide();
+
 				cleanup();
 
 				resolve({
@@ -106,6 +123,8 @@ export class PlayerActionState extends State {
 			};
 
 			const onPassClicked = () => {
+				this._cardPreview.hide();
+
 				cleanup();
 
 				resolve({
@@ -117,10 +136,15 @@ export class PlayerActionState extends State {
 			const cleanup = () => {
 				playerHand.off("playerCardPlacement", onCardPlaced);
 				passButton.off("click", onPassClicked);
+				this._interactionManager.off("cardSelected", onCardSelected);
+				this._interactionManager.off("cardDeselected", onCardDeselected);
 			};
 
 			playerHand.once("playerCardPlacement", onCardPlaced);
 			passButton.once("click", onPassClicked);
+
+			this._interactionManager.on("cardSelected", onCardSelected);
+			this._interactionManager.on("cardDeselected", onCardDeselected);
 		});
 	}
 }

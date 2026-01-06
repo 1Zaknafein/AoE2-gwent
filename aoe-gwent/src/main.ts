@@ -107,7 +107,8 @@ const boostsrap = async () => {
 
 			const context: GameContext = {
 				gameManager,
-				messageDisplay: messageDisplay,
+				gameScene,
+				messageDisplay,
 				playerDisplayManager,
 				interactionManager,
 				player,
