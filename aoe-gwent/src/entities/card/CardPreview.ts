@@ -105,8 +105,6 @@ export class CardPreview extends Container {
 
 		this._cardTitle.text = name;
 
-		console.log(name);
-
 		let description = CardDescriptions[name] || "";
 
 		// Add effect description if the card has an effect
