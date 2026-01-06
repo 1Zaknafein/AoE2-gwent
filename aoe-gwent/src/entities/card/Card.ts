@@ -1,14 +1,7 @@
-import {
-	Color,
-	Container,
-	FillGradient,
-	Graphics,
-	Sprite,
-	Text,
-	TextStyle,
-} from "pixi.js";
+import { Container, Graphics, Sprite, Text, TextStyle } from "pixi.js";
 import { CardFaceTextures } from "../../shared/database/CardFaceTextures.js";
 import gsap from "gsap";
+import { createRedButton } from "../../ui/components/CommonComponents.js";
 
 export class Card extends Container {
 	private _cardData: CardData;
@@ -21,17 +14,17 @@ export class Card extends Container {
 
 	private static SCORE_TEXT_STYLE: Partial<TextStyle> = {
 		fontFamily: "Arial",
-		fontSize: 34,
+		fontSize: 32,
 		fontWeight: "bold",
-		fill: "#ffd500",
-		stroke: { color: "#000000", width: 1 },
-		dropShadow: {
-			distance: 2,
-			angle: 1.5,
-			blur: 2,
-			color: "#000000",
-			alpha: 1,
-		},
+		fill: "#ffe1c8ff",
+		// stroke: { color: "#000000", width: 1 },
+		// dropShadow: {
+		// 	distance: 2,
+		// 	angle: 1.5,
+		// 	blur: 2,
+		// 	color: "#000000",
+		// 	alpha: 1,
+		// },
 	};
 
 	constructor(cardData: CardData) {
@@ -75,25 +68,13 @@ export class Card extends Container {
 
 		if (this.cardData.score === 0) return;
 
-		this._scoreBackground = new Graphics();
+		this._scoreBackground = createRedButton(40, 40);
 
-		const radius = 25;
-		const gradient = new FillGradient(0, 0, 0, radius / 2)
-			.addColorStop(0, new Color("#00b6b3"))
-			.addColorStop(1, new Color("#0079c0"));
+		this._scoreBackground.x =
+			-this._cardBack.width / 2 + this._scoreBackground.width / 2 + 10;
+		this._scoreBackground.y =
+			-this._cardBack.height / 2 + this._scoreBackground.height / 2 + 10;
 
-		this._scoreBackground.circle(0, 0, radius);
-		this._scoreBackground.fill(gradient);
-
-		this._scoreBackground.circle(0, 0, radius);
-		this._scoreBackground.stroke({
-			color: 0x000000,
-			width: 3,
-			alpha: 1,
-		});
-
-		this._scoreBackground.x = -this._cardBack.width / 2 + 37;
-		this._scoreBackground.y = -this._cardBack.height / 2 + 37;
 		this._scoreBackground.visible = true;
 		this.addChild(this._scoreBackground);
 
