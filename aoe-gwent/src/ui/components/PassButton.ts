@@ -1,6 +1,7 @@
 import { Text } from "pixi.js";
 import { PixiGraphics, PixiText } from "../../plugins/engine";
 import { Button } from "./Button";
+import { createRedButton } from "./CommonComponents";
 
 export class PassButton extends Button {
 	private _background: PixiGraphics;
@@ -12,9 +13,7 @@ export class PassButton extends Button {
 		const height = 80;
 		super(onClick, width, height);
 
-		this._background = new PixiGraphics();
-		this._background.rect(0, 0, width, height).fill(0xfccb81);
-		this._background.stroke({ width: 2, color: 0x000000 });
+		this._background = createRedButton(width, height);
 		this.addChild(this._background);
 
 		this._label = new Text({
@@ -23,7 +22,7 @@ export class PassButton extends Button {
 				fontFamily: "Arial",
 				fontSize: 40,
 				fontWeight: "bold",
-				fill: 0x000000,
+				fill: "#ffe1c8ff",
 			},
 		});
 

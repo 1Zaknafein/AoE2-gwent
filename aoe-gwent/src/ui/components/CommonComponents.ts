@@ -31,7 +31,5 @@ export function createRedButton(
 	g.fill({ color: highlightColor, alpha: 0.1 });
 	g.fill({ color: 0x000000, alpha: 0.15 });
 
-	g.pivot.set(width / 2, height / 2);
-
 	return g;
 }

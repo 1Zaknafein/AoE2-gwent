@@ -17,14 +17,6 @@ export class Card extends Container {
 		fontSize: 32,
 		fontWeight: "bold",
 		fill: "#ffe1c8ff",
-		// stroke: { color: "#000000", width: 1 },
-		// dropShadow: {
-		// 	distance: 2,
-		// 	angle: 1.5,
-		// 	blur: 2,
-		// 	color: "#000000",
-		// 	alpha: 1,
-		// },
 	};
 
 	constructor(cardData: CardData) {
@@ -70,10 +62,8 @@ export class Card extends Container {
 
 		this._scoreBackground = createRedButton(40, 40);
 
-		this._scoreBackground.x =
-			-this._cardBack.width / 2 + this._scoreBackground.width / 2 + 10;
-		this._scoreBackground.y =
-			-this._cardBack.height / 2 + this._scoreBackground.height / 2 + 10;
+		this._scoreBackground.x = -this._cardBack.width / 2 + 10;
+		this._scoreBackground.y = -this._cardBack.height / 2 + 10;
 
 		this._scoreBackground.visible = true;
 		this.addChild(this._scoreBackground);
@@ -84,8 +74,8 @@ export class Card extends Container {
 		});
 
 		this._scoreText.anchor.set(0.5);
-		this._scoreText.x = this._scoreBackground.x;
-		this._scoreText.y = this._scoreBackground.y;
+		this._scoreText.x = this._scoreBackground.x + 20;
+		this._scoreText.y = this._scoreBackground.y + 20;
 		this._scoreText.visible = true;
 
 		this.addChild(this._scoreText);
