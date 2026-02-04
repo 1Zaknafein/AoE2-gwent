@@ -30,6 +30,7 @@ export const options: LoaderOptions = {
 					clear: "./sprites/cards/card_faces/clear.png",
 					rain: "./sprites/cards/card_faces/rain.png",
 					freeze: "./sprites/cards/card_faces/freeze.png",
+					fog: "./sprites/cards/card_faces/fog.png",
 				},
 			},
 			{
