@@ -62,7 +62,7 @@ export class CardDatabase {
 		{
 			id: 1,
 			name: "Knight",
-			score: 5,
+			score: 6,
 			type: CardType.MELEE,
 		},
 		{
@@ -93,6 +93,60 @@ export class CardDatabase {
 			id: 6,
 			name: "Archer",
 			score: 2,
+			type: CardType.RANGED,
+		},
+		{
+			id: 7,
+			name: "Militia",
+			score: 1,
+			type: CardType.MELEE,
+		},
+		{
+			id: 8,
+			name: "Pikeman",
+			score: 3,
+			type: CardType.MELEE,
+		},
+		{
+			id: 9,
+			name: "Berserker",
+			score: 6,
+			type: CardType.MELEE,
+		},
+		{
+			id: 10,
+			name: "Two Handed Swordsman",
+			score: 5,
+			type: CardType.MELEE,
+		},
+		{
+			id: 11,
+			name: "Karambit Warrior",
+			score: 2,
+			type: CardType.MELEE,
+		},
+		{
+			id: 12,
+			name: "Obuch",
+			score: 7,
+			type: CardType.MELEE,
+		},
+		{
+			id: 13,
+			name: "Konnik",
+			score: 7,
+			type: CardType.MELEE,
+		},
+		{
+			id: 14,
+			name: "Dismounted Konnik",
+			score: 4,
+			type: CardType.MELEE,
+		},
+		{
+			id: 15,
+			name: "Cavalry Archer",
+			score: 6,
 			type: CardType.RANGED,
 		},
 		{
