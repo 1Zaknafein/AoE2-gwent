@@ -7,7 +7,6 @@ export class Card extends Container {
 	private _cardData: CardData;
 	private _cardBack!: Sprite;
 	private _cardFace!: Sprite;
-	private _typeIcon!: Sprite;
 	private _scoreBackground?: Graphics;
 	private _showingBack: boolean = false;
 	private _scoreText?: Text;
@@ -53,14 +52,6 @@ export class Card extends Container {
 		this._cardFace.scale.set(0.5);
 		this.addChild(this._cardFace);
 
-		const iconTexture = `icon_${this._cardData.type}`;
-		this._typeIcon = Sprite.from(iconTexture);
-		this._typeIcon.anchor.set(0.5);
-		this._typeIcon.scale.set(1.2);
-		this._typeIcon.x = (this._cardFace.width - this._typeIcon.width) / 2;
-		this._typeIcon.y = (this._cardFace.height - this._typeIcon.height) / 2;
-		this.addChild(this._typeIcon);
-
 		this._scoreBackground = createRedButton(40, 40);
 		this._scoreBackground.x = -this._cardBack.width / 2 + 10;
 		this._scoreBackground.y = -this._cardBack.height / 2 + 10;
@@ -77,7 +68,6 @@ export class Card extends Container {
 		this._scoreText.y = this._scoreBackground.y + 20;
 
 		if (this._cardData.score === 0) {
-			this._typeIcon.visible = false;
 			this._scoreBackground.visible = false;
 			this._scoreText.visible = false;
 		}
@@ -97,6 +87,11 @@ export class Card extends Container {
 		}
 	}
 
+	public hideDetails(): void {
+		this._scoreText!.visible = false;
+		this._scoreBackground!.visible = false;
+	}
+
 	/**
 	 * Update the card's data and refresh the visual elements
 	 * Used when revealing enemy cards
@@ -110,11 +105,6 @@ export class Card extends Container {
 		if (this._scoreText) {
 			this._scoreText.text = newCardData.score.toString();
 		}
-
-		const iconTexture = `icon_${newCardData.type}`;
-		this._typeIcon.texture = Sprite.from(iconTexture).texture;
-
-		this.updateShowingScore();
 	}
 
 	public updateShowingScore(): void {
@@ -122,7 +112,6 @@ export class Card extends Container {
 
 		this._scoreText!.visible = showScore;
 		this._scoreBackground!.visible = showScore;
-		this._typeIcon.visible = showScore;
 	}
 
 	/**
@@ -133,6 +122,7 @@ export class Card extends Container {
 		return new Promise((resolve) => {
 			// First update the card data while it's still showing back
 			this.updateCardData(newCardData);
+			this.updateShowingScore();
 
 			gsap.to(this.scale, {
 				x: 0,
@@ -162,7 +152,6 @@ export class Card extends Container {
 		this._showingBack = true;
 		this._cardBack.visible = true;
 		this._cardFace.visible = false;
-		this._typeIcon.visible = false;
 		this._scoreText!.visible = false;
 		this._scoreBackground!.visible = false;
 	}
@@ -175,7 +164,6 @@ export class Card extends Container {
 		this._showingBack = false;
 		this._cardBack.visible = false;
 		this._cardFace.visible = true;
-		this._typeIcon.visible = true;
 
 		this.updateShowingScore();
 	}

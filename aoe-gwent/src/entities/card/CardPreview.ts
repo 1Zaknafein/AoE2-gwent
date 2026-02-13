@@ -12,9 +12,11 @@ export class CardPreview extends Container {
 	public card: Card;
 
 	private readonly _title: Text;
-	private readonly _description: Text;
+	private readonly _score: Text;
+	private readonly _typeIcon: Sprite;
 
-	private readonly _maxTextWidth: number;
+	private readonly _border: Sprite;
+	private readonly _descriptionText: Text;
 
 	private _activeTween: GSAPAnimation | null = null;
 
@@ -30,15 +32,14 @@ export class CardPreview extends Container {
 
 		this.card = new Card(cardData);
 		this.card.scale.set(2);
+		this.card.hideDetails();
 
-		const paper = Sprite.from("paper");
-		paper.scale.set(1.15, 0.8);
-		paper.position.set(-paper.width / 2, this.card.height / 2 + 5);
-
-		this._maxTextWidth = paper.width - 20;
+		this._border = Sprite.from("card_border");
+		this._border.anchor.set(0.5);
+		this._border.scale.set(1.2);
 
 		this._title = new Text();
-		this._title.text = "";
+		this._title.text = "TEST";
 		this._title.style = {
 			fontFamily: "Cinzel, serif",
 			fontSize: 30,
@@ -46,30 +47,76 @@ export class CardPreview extends Container {
 			fill: "#290e00",
 		};
 
-		setFitWidth(this._title, this._maxTextWidth, 30);
+		setFitWidth(this._title, 230, 30);
 
 		this._title.anchor.set(0.5);
-		this._title.y = paper.y + 40;
+		this._title.y = this._border.y + this._border.height / 2 - 93;
 
-		this._description = new Text();
-		this._description.text = "";
-		this._description.style = {
+		this._typeIcon = Sprite.from("icon_melee");
+		this._typeIcon.anchor.set(0.5);
+		this._typeIcon.alpha = 1;
+		this._typeIcon.scale.set(2);
+		this._typeIcon.angle = 240;
+		this._typeIcon.x = 145;
+		this._typeIcon.y = 200;
+
+		this._score = new Text();
+		this._score.text = "19";
+		this._score.style = {
+			fontFamily: "Cinzel, serif",
+			fontSize: 48,
+			align: "center",
+			fontWeight: "bold",
+			fill: "#b89663",
+			stroke: {
+				width: 1,
+				color: "black",
+			},
+			dropShadow: {
+				distance: 4,
+				blur: 4,
+				color: "black",
+				alpha: 0.5,
+				angle: 45,
+			},
+		};
+
+		this._score.anchor.set(0.5);
+		this._score.y = 238;
+		this._score.x = -150;
+
+		const descriptionBg = Sprite.from("paper");
+		descriptionBg.scale.set(1.15, 0.8);
+		descriptionBg.x = -descriptionBg.width / 2;
+		descriptionBg.y = this.card.height / 2 + 5;
+
+		this._descriptionText = new Text();
+		this._descriptionText.text = "";
+		this._descriptionText.style = {
 			fontFamily: "Cinzel, serif",
 			fontSize: 18,
 			fontWeight: "bold",
 			fill: "#290e00",
 			align: "center",
 			wordWrap: true,
-			wordWrapWidth: this._maxTextWidth,
+			wordWrapWidth: descriptionBg.width - 40,
 		};
 
-		this._description.anchor.set(0.5, 0);
-		this._description.y = this._title.y + 30;
+		this._descriptionText.anchor.set(0.5, 0);
+		this._descriptionText.y = this._title.y + 110;
 
-		this.addChild(paper, this._description, this._title, this.card);
+		this.addChild(
+			descriptionBg,
+			this._descriptionText,
+			this.card,
+			this._border,
+			this._title,
+			this._typeIcon,
+			this._score
+		);
 
-		this.visible = false;
-		this.alpha = 0;
+		this.visible = true;
+		this.alpha = 1;
 	}
 
 	public async show(data: CardData): Promise<void> {
@@ -109,7 +156,13 @@ export class CardPreview extends Container {
 
 		this._title.text = name;
 		this._title.style.fontSize = 30;
-		setFitWidth(this._title, this._maxTextWidth, 30);
+		setFitWidth(this._title, 230, 30);
+
+		if (this.card.cardData.baseScore! > 0) {
+			this._score.text = this.card.cardData.baseScore!.toString();
+		} else {
+			this._score.text = "";
+		}
 
 		let description = CardDescriptions[name] || "";
 
@@ -122,6 +175,6 @@ export class CardPreview extends Container {
 			}
 		}
 
-		this._description.text = description;
+		this._descriptionText.text = description;
 	}
 }

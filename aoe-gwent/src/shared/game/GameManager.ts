@@ -69,14 +69,14 @@ export class GameManager {
 	 * Start the game. Initializes decks and decides starting player.
 	 */
 	public startGame(): void {
-		this._player.deck.push(...CardDatabase.generateRandomDeck(20));
-		this._enemy.deck.push(...CardDatabase.generateRandomDeck(20));
+		this._player.deck.push(...CardDatabase.generateRandomDeck(30));
+		this._enemy.deck.push(...CardDatabase.generateRandomDeck(30));
 
 		this._playerScores.set(this._player.id, 0);
 		this._playerScores.set(this._enemy.id, 0);
 
-		this._player.hand.addCardsBatch(this._player.deck.splice(0, 10));
-		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 10));
+		this._player.hand.addCardsBatch(this._player.deck.splice(0, 15));
+		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 15));
 		this._enemy.hand.hideCards();
 
 		this._playerDisplayManager.playerDisplay.setRoundWins(0);

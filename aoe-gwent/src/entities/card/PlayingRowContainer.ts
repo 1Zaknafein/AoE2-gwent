@@ -3,11 +3,7 @@ import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { WeatherEffect } from "./WeatherEffect";
 import { gsap } from "gsap";
-import {
-	CardData,
-	CardEffect,
-	CardType,
-} from "../../local-server/CardDatabase";
+import { CardEffect, CardType } from "../../local-server/CardDatabase";
 
 export interface PlayingRowConfig {
 	width: number;
