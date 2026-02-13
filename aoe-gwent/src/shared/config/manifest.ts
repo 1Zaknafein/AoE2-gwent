@@ -32,6 +32,11 @@ export const options: LoaderOptions = {
 					konnik: "./sprites/cards/card_faces/konnik.png",
 					dismounted_konnik: "./sprites/cards/card_faces/dismounted_konnik.png",
 					cavalry_archer: "./sprites/cards/card_faces/cavalry_archer.png",
+					monaspa: "./sprites/cards/card_faces/monaspa.png",
+					skirmisher: "./sprites/cards/card_faces/skirmisher.png",
+					elite_skirmisher: "./sprites/cards/card_faces/elite_skirmisher.png",
+					winged_hussar: "./sprites/cards/card_faces/winged_hussar.png",
+
 					icon_melee: "./sprites/cards/icon_melee.png",
 					icon_ranged: "./sprites/cards/icon_ranged.png",
 					icon_ranged_melee: "./sprites/cards/icon_ranged_melee.png",

@@ -150,6 +150,30 @@ export class CardDatabase {
 			type: CardType.RANGED,
 		},
 		{
+			id: 16,
+			name: "Skirmisher",
+			score: 2,
+			type: CardType.RANGED,
+		},
+		{
+			id: 17,
+			name: "Elite Skirmisher",
+			score: 4,
+			type: CardType.RANGED,
+		},
+		{
+			id: 18,
+			name: "Monaspa",
+			score: 6,
+			type: CardType.MELEE,
+		},
+		{
+			id: 19,
+			name: "Winged Hussar",
+			score: 5,
+			type: CardType.MELEE,
+		},
+		{
 			id: 101,
 			name: "Frost",
 			score: 0,
