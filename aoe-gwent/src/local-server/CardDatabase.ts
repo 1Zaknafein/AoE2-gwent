@@ -1,4 +1,12 @@
 import { Texture } from "pixi.js";
+import {
+	SelfEffectFunction,
+	AuraEffectFunction,
+	TriggerEffectFunction,
+	SelfEffects,
+	AuraEffects,
+	TriggerEffects,
+} from "./CardEffects";
 
 export enum CardType {
 	MELEE = "melee",
@@ -17,6 +25,8 @@ export const enum CardEffect {
 	BOOST = "boost",
 }
 
+export type CardTag = "infantry" | "cavalry" | "archer" | "siege" | "hero";
+
 export interface CardData {
 	id: number;
 	name: string;
@@ -24,12 +34,22 @@ export interface CardData {
 	type: CardType;
 	effect?: CardEffect;
 	baseScore?: number;
+	tags?: CardTag[];
+
+	// Card effect system
+	selfEffect?: SelfEffectFunction; // Modifies own score based on conditions
+	auraEffect?: AuraEffectFunction; // Affects other cards
+	onPlayEffect?: TriggerEffectFunction; // Triggers once when played
 }
 
 /**
  * Local card database that stores card definitions.
  */
 export class CardDatabase {
+	public static getCardById(id: number): CardData | undefined {
+		return this.cards.find((card) => card.id === id);
+	}
+
 	public static generateRandomDeck(size: number): CardData[] {
 		const deck = [];
 
@@ -64,12 +84,14 @@ export class CardDatabase {
 			name: "Knight",
 			score: 6,
 			type: CardType.MELEE,
+			tags: ["cavalry"],
 		},
 		{
 			id: 2,
 			name: "Crossbowman",
 			score: 3,
 			type: CardType.RANGED,
+			tags: ["archer"],
 		},
 		{
 			id: 3,
@@ -82,96 +104,119 @@ export class CardDatabase {
 			name: "Light Cavalry",
 			score: 3,
 			type: CardType.MELEE,
+			tags: ["cavalry"],
 		},
 		{
 			id: 5,
 			name: "Teutonic Knight",
 			score: 10,
 			type: CardType.MELEE,
+			tags: ["infantry"],
 		},
 		{
 			id: 6,
 			name: "Archer",
 			score: 2,
 			type: CardType.RANGED,
+			tags: ["archer"],
 		},
 		{
 			id: 7,
 			name: "Militia",
 			score: 1,
 			type: CardType.MELEE,
+			tags: ["infantry"],
 		},
 		{
 			id: 8,
 			name: "Pikeman",
 			score: 3,
 			type: CardType.MELEE,
+			tags: ["infantry"],
+			selfEffect: SelfEffects.pikemanBonus,
 		},
 		{
 			id: 9,
 			name: "Berserker",
 			score: 6,
 			type: CardType.MELEE,
+			tags: ["infantry"],
 		},
 		{
 			id: 10,
 			name: "Two Handed Swordsman",
 			score: 5,
 			type: CardType.MELEE,
+			tags: ["infantry"],
 		},
 		{
 			id: 11,
 			name: "Karambit Warrior",
 			score: 2,
 			type: CardType.MELEE,
+			tags: ["infantry"],
+			onPlayEffect: TriggerEffects.karambitSummon,
 		},
 		{
 			id: 12,
 			name: "Obuch",
 			score: 7,
 			type: CardType.MELEE,
+			tags: ["infantry"],
+			auraEffect: AuraEffects.obuchDebuff,
 		},
 		{
 			id: 13,
 			name: "Konnik",
 			score: 7,
 			type: CardType.MELEE,
+			tags: ["cavalry"],
 		},
 		{
 			id: 14,
 			name: "Dismounted Konnik",
 			score: 4,
 			type: CardType.MELEE,
+			tags: ["infantry"],
 		},
 		{
 			id: 15,
 			name: "Cavalry Archer",
 			score: 6,
 			type: CardType.RANGED,
+			tags: ["cavalry", "archer"],
 		},
 		{
 			id: 16,
 			name: "Skirmisher",
 			score: 2,
 			type: CardType.RANGED,
+			tags: ["archer"],
+			selfEffect: SelfEffects.skirmisherBonus,
 		},
 		{
 			id: 17,
 			name: "Elite Skirmisher",
 			score: 4,
 			type: CardType.RANGED,
+			tags: ["archer"],
+			selfEffect: SelfEffects.skirmisherBonus,
 		},
 		{
 			id: 18,
 			name: "Monaspa",
 			score: 6,
 			type: CardType.MELEE,
+			tags: ["cavalry"],
+			selfEffect: SelfEffects.monaspaBonus,
 		},
 		{
 			id: 19,
 			name: "Winged Hussar",
 			score: 5,
 			type: CardType.MELEE,
+			tags: ["cavalry"],
+			selfEffect: SelfEffects.wingedHussarBonus,
 		},
 		{
 			id: 101,

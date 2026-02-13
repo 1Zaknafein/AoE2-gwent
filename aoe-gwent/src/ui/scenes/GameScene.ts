@@ -46,12 +46,12 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	public readonly boardWidth = 2400;
 	public readonly boardHeight = 1350;
 
+	public readonly playerDeck: Deck;
+	public readonly opponentDeck: Deck;
+
 	private readonly ROW_HEIGHT = 130;
 	private readonly LEFT_MARGIN = 450;
 	private readonly RIGHT_MARGIN = 350;
-
-	private playerDeck!: Deck;
-	private opponentDeck!: Deck;
 
 	constructor() {
 		super();
@@ -129,6 +129,16 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.boardHeight / 2 - 150
 		);
 
+		const boardWidth = this.boardWidth;
+
+		this.playerDeck = new Deck();
+		this.playerDeck.setPosition(boardWidth - 125, this.boardHeight - 105);
+		this.playerDeck.scale.set(0.75);
+
+		this.opponentDeck = new Deck();
+		this.opponentDeck.setPosition(boardWidth - 125, 115);
+		this.opponentDeck.scale.set(0.75);
+
 		this.gameBoard.addChild(
 			this.background,
 			this.backgroundImage,
@@ -148,10 +158,10 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.opponentDiscard,
 			this.opponentHand,
 			this.playerHand,
+			this.playerDeck,
+			this.opponentDeck,
 			this.cardPreview
 		);
-
-		this.createDecks();
 
 		this.resize(Manager.width, Manager.height);
 	}
@@ -183,23 +193,6 @@ export class GameScene extends PixiContainer implements SceneInterface {
 		graphics.rect(0, 0, width, height).fill(gradient);
 
 		return graphics;
-	}
-
-	/**
-	 * Visual decks on the board, used as targets to animate cards from.
-	 */
-	private createDecks(): void {
-		const boardWidth = this.boardWidth;
-
-		this.playerDeck = new Deck();
-		this.playerDeck.setPosition(boardWidth - 125, this.boardHeight - 105);
-		this.playerDeck.scale.set(0.75);
-		this.gameBoard.addChild(this.playerDeck);
-
-		this.opponentDeck = new Deck();
-		this.opponentDeck.setPosition(boardWidth - 125, 115);
-		this.opponentDeck.scale.set(0.75);
-		this.gameBoard.addChild(this.opponentDeck);
 	}
 
 	resize(screenWidth: number, screenHeight: number): void {

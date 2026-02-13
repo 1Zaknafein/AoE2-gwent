@@ -3,7 +3,11 @@ import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { WeatherEffect } from "./WeatherEffect";
 import { gsap } from "gsap";
-import { CardEffect, CardType } from "../../local-server/CardDatabase";
+import {
+	CardData,
+	CardEffect,
+	CardType,
+} from "../../local-server/CardDatabase";
 
 export interface PlayingRowConfig {
 	width: number;
@@ -22,15 +26,16 @@ export class PlayingRowContainer extends CardContainer {
 	private typeIcon: PixiSprite;
 	private scoreText: Text;
 	private config: PlayingRowConfig;
+
 	private _score = 0;
 	private _weatherEffectApplied = false;
 
 	constructor(config: PlayingRowConfig) {
 		super(
-			config.width - 200, // Card area width (leaving space for label and score)
+			config.width - 200,
 			config.containerType,
 			CardContainerLayoutType.SPREAD,
-			0.5 // Cards in playing rows are scaled to 0.5
+			0.5
 		);
 
 		this.config = config;

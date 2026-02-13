@@ -16,12 +16,14 @@ export class Player {
 	public readonly discarded: CardContainer;
 	public readonly weather: WeatherRowContainer;
 	public readonly deck: CardData[];
+	public readonly deckPosition: { x: number; y: number };
 
 	public score = 0;
 	public hasPassed = false;
 
 	constructor(data: PlayerData) {
-		const { id, hand, melee, ranged, siege, discarded, weather } = data;
+		const { id, hand, melee, ranged, siege, discarded, weather, deckPosition } =
+			data;
 
 		this.id = id;
 		this.deck = [];
@@ -32,6 +34,7 @@ export class Player {
 		this.siege = siege;
 		this.discarded = discarded;
 		this.weather = weather;
+		this.deckPosition = deckPosition;
 	}
 
 	public updateScore(): void {
@@ -60,4 +63,5 @@ export type PlayerData = {
 	siege: PlayingRowContainer;
 	discarded: CardContainer;
 	weather: WeatherRowContainer;
+	deckPosition: { x: number; y: number };
 };

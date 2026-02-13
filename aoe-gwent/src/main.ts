@@ -25,6 +25,7 @@ import {
 	PlayerDisplayManager,
 	PlayerDisplayManagerConfig,
 } from "./entities/player";
+import { Point } from "pixi.js";
 
 const boostsrap = async () => {
 	const appOptions: Partial<IPixiApplicationOptions> = {
@@ -58,6 +59,7 @@ const boostsrap = async () => {
 				siege: gameScene.playerSiegeRow,
 				discarded: gameScene.playerDiscard,
 				weather: gameScene.weatherRow,
+				deckPosition: gameScene.playerDeck.getTopCardGlobalPosition(),
 			});
 
 			const enemy = new BotPlayer(
@@ -69,6 +71,7 @@ const boostsrap = async () => {
 					siege: gameScene.opponentSiegeRow,
 					discarded: gameScene.opponentDiscard,
 					weather: gameScene.weatherRow,
+					deckPosition: gameScene.opponentDeck.getTopCardGlobalPosition(),
 				},
 				player
 			);
