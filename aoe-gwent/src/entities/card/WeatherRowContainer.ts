@@ -1,4 +1,4 @@
-import { Graphics } from "pixi.js";
+import { Graphics, Sprite } from "pixi.js";
 import { PixiGraphics } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { gsap } from "gsap";
@@ -28,7 +28,12 @@ export class WeatherRowContainer extends CardContainer {
 		this.rowBackground = this.createBackground();
 		this.highlightOverlay = this.createHighlight();
 
-		this.addChild(this.rowBackground, this.highlightOverlay);
+		const typeIcon = Sprite.from("icon_weather");
+		typeIcon.anchor.set(0.5);
+		typeIcon.x = -config.width / 2 + 50;
+		typeIcon.alpha = 0.3;
+
+		this.addChild(this.rowBackground, typeIcon, this.highlightOverlay);
 
 		this.setCardsInteractive(false);
 	}

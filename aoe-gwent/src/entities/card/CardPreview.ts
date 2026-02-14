@@ -36,6 +36,7 @@ export class CardPreview extends Container {
 			[CardType.MELEE, Texture.from("icon_melee")],
 			[CardType.RANGED, Texture.from("icon_ranged")],
 			[CardType.SIEGE, Texture.from("icon_siege")],
+			[CardType.WEATHER, Texture.from("icon_weather")],
 		]);
 
 		this.card = new Card(cardData);
@@ -168,9 +169,9 @@ export class CardPreview extends Container {
 
 		const texture = this._rowTypeIcons.get(this.card.cardData.type);
 
-		if (texture) {
+		if (texture && this._icon.texture !== texture) {
 			this._icon.texture = texture;
-		} else {
+		} else if (!texture) {
 			this._icon.texture = Texture.EMPTY;
 		}
 

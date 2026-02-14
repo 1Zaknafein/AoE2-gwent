@@ -42,6 +42,7 @@ export const options: LoaderOptions = {
 					icon_melee: "./sprites/cards/icon_melee.png",
 					icon_ranged: "./sprites/cards/icon_ranged.png",
 					icon_siege: "./sprites/cards/icon_siege.png",
+					icon_weather: "./sprites/cards/icon_weather.png",
 
 					clear: "./sprites/cards/card_faces/clear.png",
 					rain: "./sprites/cards/card_faces/rain.png",

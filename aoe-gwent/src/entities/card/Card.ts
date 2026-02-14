@@ -1,12 +1,17 @@
-import { Container, Sprite, Text, TextStyle } from "pixi.js";
+import { Container, Sprite, Text, TextStyle, Texture } from "pixi.js";
 import gsap from "gsap";
-import { CardDatabase, CardData } from "../../local-server/CardDatabase.js";
+import {
+	CardDatabase,
+	CardData,
+	CardType,
+} from "../../local-server/CardDatabase.js";
 
 export class Card extends Container {
 	private _cardData: CardData;
 	private _cardBack!: Sprite;
 	private _cardFace!: Sprite;
 	private _cardBorder!: Sprite;
+	private _icon!: Sprite;
 	private _showingBack: boolean = false;
 	private _scoreText?: Text;
 
@@ -64,8 +69,23 @@ export class Card extends Container {
 			y: -this._cardFace.height / 2 + 13,
 		});
 
+		this._icon = new Sprite();
+		this._icon.anchor.set(0.5);
+		this.addChild(this._icon);
+
+		this._icon.visible = false;
+
 		if (this._cardData.score === 0) {
 			this._scoreText.visible = false;
+
+			if (this._cardData.type === CardType.WEATHER) {
+				this._icon.texture = Texture.from("icon_weather");
+				this._icon.visible = true;
+				this._icon.scale.set(0.5);
+				this._icon.x = -this._cardFace.width / 2 + 23;
+				this._icon.y = -this._cardFace.height / 2 + 13;
+				this._icon.tint = "#290e00";
+			}
 		}
 
 		this.addChild(this._scoreText);
@@ -86,6 +106,10 @@ export class Card extends Container {
 	public hideDetails(): void {
 		this._scoreText!.visible = false;
 		this._cardBorder.visible = false;
+
+		if (this._icon) {
+			this._icon.visible = false;
+		}
 	}
 
 	/**
@@ -149,6 +173,10 @@ export class Card extends Container {
 		this._cardFace.visible = false;
 		this._scoreText!.visible = false;
 		this._cardBorder.visible = false;
+
+		if (this._icon) {
+			this._icon.visible = false;
+		}
 	}
 
 	/**
@@ -160,6 +188,10 @@ export class Card extends Container {
 		this._cardBack.visible = false;
 		this._cardFace.visible = true;
 		this._cardBorder.visible = true;
+
+		if (this._icon) {
+			this._icon.visible = true;
+		}
 
 		this.updateShowingScore();
 	}
