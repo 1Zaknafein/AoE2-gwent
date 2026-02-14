@@ -36,10 +36,13 @@ export class CardPreview extends Container {
 
 		this._border = Sprite.from("card_border");
 		this._border.anchor.set(0.5);
-		this._border.scale.set(1.2);
+		this._border.scale.set(1.2, 1.25);
+		this._border.y = 15;
 
 		this._title = new Text();
 		this._title.text = "TEST";
+		this._title.anchor.set(0.5);
+		this._title.y = 253;
 		this._title.style = {
 			fontFamily: "Cinzel, serif",
 			fontSize: 30,
@@ -49,9 +52,6 @@ export class CardPreview extends Container {
 
 		setFitWidth(this._title, 230, 30);
 
-		this._title.anchor.set(0.5);
-		this._title.y = this._border.y + this._border.height / 2 - 93;
-
 		this._typeIcon = Sprite.from("icon_melee");
 		this._typeIcon.anchor.set(0.5);
 		this._typeIcon.alpha = 1;
@@ -59,6 +59,7 @@ export class CardPreview extends Container {
 		this._typeIcon.angle = 240;
 		this._typeIcon.x = 145;
 		this._typeIcon.y = 200;
+		this._typeIcon.visible = false;
 
 		this._score = new Text();
 		this._score.text = "19";
@@ -82,7 +83,7 @@ export class CardPreview extends Container {
 		};
 
 		this._score.anchor.set(0.5);
-		this._score.y = 238;
+		this._score.y = 264;
 		this._score.x = -150;
 
 		const descriptionBg = Sprite.from("paper");

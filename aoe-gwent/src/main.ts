@@ -25,7 +25,6 @@ import {
 	PlayerDisplayManager,
 	PlayerDisplayManagerConfig,
 } from "./entities/player";
-import { Point } from "pixi.js";
 
 const boostsrap = async () => {
 	const appOptions: Partial<IPixiApplicationOptions> = {
