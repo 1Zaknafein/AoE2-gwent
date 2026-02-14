@@ -3,6 +3,7 @@ import gsap from "gsap";
 import { setFitWidth } from "../../ui/components/CommonComponents";
 import { CardData, CardType } from "../../local-server/CardDatabase";
 import { Card } from "./Card";
+import { FontStyles } from "../../shared/FontStyles";
 
 export class CardPreview extends Container {
 	public card: Card;
@@ -66,25 +67,7 @@ export class CardPreview extends Container {
 		this._icon.y = 265;
 
 		this._score = new Text();
-		this._score.text = "19";
-		this._score.style = {
-			fontFamily: "Cinzel, serif",
-			fontSize: 48,
-			align: "center",
-			fontWeight: "bold",
-			fill: "#b89663",
-			stroke: {
-				width: 1,
-				color: "black",
-			},
-			dropShadow: {
-				distance: 4,
-				blur: 4,
-				color: "black",
-				alpha: 0.5,
-				angle: 45,
-			},
-		};
+		this._score.style = FontStyles.scoreTextStyle;
 
 		this._score.anchor.set(0.5);
 		this._score.y = 263;
