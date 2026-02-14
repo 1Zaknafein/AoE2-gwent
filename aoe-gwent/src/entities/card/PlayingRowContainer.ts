@@ -1,4 +1,4 @@
-import { Text, TextStyle } from "pixi.js";
+import { Graphics, Sprite, Text, TextStyle } from "pixi.js";
 import { PixiGraphics, PixiSprite } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { WeatherEffect } from "./WeatherEffect";
@@ -16,10 +16,10 @@ export interface PlayingRowConfig {
  * Specialized container for playing rows (Melee, Ranged, Siege).
  */
 export class PlayingRowContainer extends CardContainer {
-	private rowBackground: PixiGraphics;
-	private highlightOverlay: PixiGraphics;
+	private rowBackground: Graphics;
+	private highlightOverlay: Graphics;
 	private weatherEffect: WeatherEffect;
-	private typeIcon: PixiSprite;
+	private typeIcon: Sprite;
 	private scoreText: Text;
 	private config: PlayingRowConfig;
 
@@ -160,8 +160,8 @@ export class PlayingRowContainer extends CardContainer {
 		this.updateScore();
 	}
 
-	private createBackground(): PixiGraphics {
-		const bg = new PixiGraphics();
+	private createBackground(): Graphics {
+		const bg = new Graphics();
 		const { width, height } = this.config;
 		const bgX = -width / 2;
 		const bgY = -height / 2;
@@ -235,6 +235,7 @@ export class PlayingRowContainer extends CardContainer {
 
 		// Map card type to icon sprite name
 		let iconName: string;
+
 		switch (containerType) {
 			case CardType.MELEE:
 				iconName = "icon_melee";
@@ -249,11 +250,10 @@ export class PlayingRowContainer extends CardContainer {
 				iconName = "icon_melee";
 		}
 
-		const icon = PixiSprite.from(iconName);
-		icon.anchor.set(0, 0.5);
-		icon.position.set(bgX + 20, 0);
-		icon.scale.set(1.5); // Scale up the icon
-		icon.alpha = 0.3; // Low opacity as requested
+		const icon = Sprite.from(iconName);
+		icon.anchor.set(0.5);
+		icon.position.set(bgX + 65, 0);
+		icon.alpha = 0.3;
 
 		return icon;
 	}
