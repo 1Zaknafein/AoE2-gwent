@@ -6,7 +6,7 @@ export namespace FontStyles {
 		fontSize: 48,
 		align: "center",
 		fontWeight: "bold",
-		fill: "#b89663",
+		fill: "#d1c072",
 		stroke: {
 			width: 1,
 			color: "black",

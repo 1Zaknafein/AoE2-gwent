@@ -1,7 +1,8 @@
-import { Container, Text } from "pixi.js";
+import { Container, Text, TextStyle } from "pixi.js";
 import { PixiText } from "../../plugins/engine";
 import { Button } from "./Button";
 import { BorderDialog } from "./BorderDialog";
+import { FontStyles } from "../../shared/FontStyles";
 
 export class PassButton extends Button {
 	private _background: Container;
@@ -13,18 +14,13 @@ export class PassButton extends Button {
 		const height = 80;
 		super(onClick, width, height);
 
-		this._background = new BorderDialog(width, height);
+		this._background = new BorderDialog(width, height, "wood");
 
 		this.addChild(this._background);
 
 		this._label = new Text({
 			text: "PASS",
-			style: {
-				fontFamily: "Cinzel, serif",
-				fontSize: 44,
-				fontWeight: "bold",
-				fill: "#ffe1c8ff",
-			},
+			style: new TextStyle({ ...FontStyles.scoreTextStyle }),
 		});
 
 		this._label.x = (width - this._label.width) / 2;
@@ -47,8 +43,8 @@ export class PassButton extends Button {
 
 		if (enabled) {
 			this._background.tint = 0xffffff;
-			this._background.alpha = 1.0;
-			this._label.alpha = 1.0;
+			this._background.alpha = 1;
+			this._label.alpha = 1;
 		} else {
 			this._background.tint = 0x888888;
 			this._background.alpha = 0.5;

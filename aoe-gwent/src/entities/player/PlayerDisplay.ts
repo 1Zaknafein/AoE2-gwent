@@ -3,6 +3,7 @@ import { PixiContainer } from "../../plugins/engine";
 import { CardContainer } from "../card";
 import { PassButton } from "../../ui/components";
 import { BorderDialog } from "../../ui/components/BorderDialog";
+import { FontStyles } from "../../shared/FontStyles";
 
 export class PlayerDisplay extends PixiContainer {
 	public playerNameText!: Text;
@@ -109,42 +110,20 @@ export class PlayerDisplay extends PixiContainer {
 
 	private createTextStyles(): void {
 		const nameStyle = new TextStyle({
-			fontFamily: "Arial",
-			fontSize: 26,
-			fontWeight: "bold",
-			fill: 0xf4e4c1,
-			stroke: { color: 0x000000, width: 3 },
+			...FontStyles.scoreTextStyle,
+			fontSize: 35,
 		});
 
 		const scoreStyle = new TextStyle({
-			fontFamily: "Arial",
+			...FontStyles.scoreTextStyle,
 			fontSize: 60,
-			fontWeight: "bold",
-			fill: "#ffd700",
-			stroke: { color: "#000000", width: 3 },
-			dropShadow: {
-				distance: 2,
-				angle: 1.5,
-				blur: 2,
-				color: "#000000",
-				alpha: 0.8,
-			},
 		});
 
-		const handCountStyle = new TextStyle({
-			fontFamily: "Arial",
-			fontSize: 40,
-			fontWeight: "bold",
-			fill: "#d4af37",
-			stroke: { color: "#000000", width: 3 },
-		});
+		const handCountStyle = new TextStyle(FontStyles.scoreTextStyle);
 
 		const labelStyle = new TextStyle({
-			fontFamily: "Arial",
-			fontSize: 16,
-			fontWeight: "bold",
-			fill: 0xb8a27a,
-			stroke: { color: 0x000000, width: 2 },
+			...FontStyles.scoreTextStyle,
+			fontSize: 22,
 		});
 
 		this.playerNameText = new Text({
@@ -192,7 +171,7 @@ export class PlayerDisplay extends PixiContainer {
 		const width = 360;
 		const height = 180;
 
-		this.displayBackground = new BorderDialog(width, height, "dirt");
+		this.displayBackground = new BorderDialog(width, height, "wood");
 
 		this.addChild(this.displayBackground);
 	}

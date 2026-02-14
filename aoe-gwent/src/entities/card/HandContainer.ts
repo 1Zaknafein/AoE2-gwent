@@ -1,5 +1,4 @@
 import { Container } from "pixi.js";
-import { PixiGraphics } from "../../plugins/engine";
 import { CardContainer, CardContainerLayoutType } from "./CardContainer";
 import { BorderDialog } from "../../ui/components/BorderDialog";
 
@@ -31,7 +30,7 @@ export class HandContainer extends CardContainer {
 			calculatedCardScale
 		);
 
-		this.background = new BorderDialog(config.width, config.height);
+		this.background = new BorderDialog(config.width, config.height, "dirt");
 		this.background.pivot.set(
 			this.background.width / 2,
 			this.background.height / 2

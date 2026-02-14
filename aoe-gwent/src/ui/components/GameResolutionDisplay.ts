@@ -71,7 +71,6 @@ export class GameResolutionDisplay extends Container {
 			style: new TextStyle({
 				...FontStyles.scoreTextStyle,
 				fontSize: 70,
-				fill: "#d1c072",
 			}),
 			anchor: 0.5,
 			y: -130,
