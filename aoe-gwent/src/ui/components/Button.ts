@@ -14,6 +14,7 @@ export class Button extends PixiContainer {
 		this.interactive = true;
 		this.cursor = "pointer";
 
+		// TODO See if this is worth having by default, as sometimes needs to be turned off.
 		this.on("pointerdown", this.onPointerDown.bind(this));
 		this.on("pointerup", this.onPointerUp.bind(this));
 	}
@@ -26,5 +27,11 @@ export class Button extends PixiContainer {
 	private onPointerUp(): void {
 		this.alpha = 1.0;
 		this._onClick();
+	}
+
+	public waitForClick(): Promise<void> {
+		return new Promise((resolve) => {
+			this.once("pointerup", () => resolve());
+		});
 	}
 }

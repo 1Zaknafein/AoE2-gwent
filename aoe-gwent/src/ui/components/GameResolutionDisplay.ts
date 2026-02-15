@@ -1,8 +1,8 @@
 import { gsap } from "gsap";
 import {
 	Container,
-	Graphics,
 	NineSliceSprite,
+	Rectangle,
 	Sprite,
 	Text,
 	TextStyle,
@@ -11,37 +11,37 @@ import {
 import { GameManager } from "../../shared/game/GameManager";
 import { PlayerID } from "../../shared/types";
 import { FontStyles } from "../../shared/FontStyles";
+import { GameResolutionTableData } from "./GameResolutionTableData";
+import { BorderDialog } from "./BorderDialog";
+import { Button } from "./Button";
 
 export class GameResolutionDisplay extends Container {
-	private _gameManager: GameManager;
-	private _tableContainer!: Container;
-	private _playerName: string;
-	private _enemyName: string;
+	public readonly continueButton: Button;
 
-	private _playerHeader!: Text;
-	private _opponentHeader!: Text;
-	private _roundLabels: Text[] = [];
-	private _playerScores: Text[] = [];
-	private _enemyScores: Text[] = [];
-	private _separatorLine!: Graphics;
-	private _totalLabel!: Text;
-	private _playerTotal!: Text;
-	private _enemyTotal!: Text;
-	private _winnerMessage!: Text;
+	private readonly _victoryText: Text;
+	private readonly _gameManager: GameManager;
+
+	private _tableData!: GameResolutionTableData;
+	private _continueText!: Text;
+
+	private _labelStyle = new TextStyle({
+		fontFamily: "Arial",
+		fontSize: 28,
+		fill: "#291205",
+		fontWeight: "bold",
+	});
 
 	constructor(gameManager: GameManager, playerName: string, enemyName: string) {
 		super();
 
 		this._gameManager = gameManager;
-		this._playerName = playerName;
-		this._enemyName = enemyName;
 
 		const background = Sprite.from("resolution_dialog_fill");
 		background.tint = "#dbdbdb";
 		background.anchor.set(0.5);
-		background.width = 500;
-		background.height = 400;
-		background.y = 100;
+		background.width = 600;
+		background.height = 300;
+		background.y = 70;
 		this.addChild(background);
 
 		const border = new NineSliceSprite({
@@ -60,13 +60,11 @@ export class GameResolutionDisplay extends Container {
 
 		const header = Sprite.from("resolution_dialog_header");
 		header.anchor.set(0.5);
+		header.scale.set(1.2);
 		header.y = -150;
 		this.addChild(header);
 
-		this._tableContainer = new Container();
-		this.addChild(this._tableContainer);
-
-		const victoryText = new Text({
+		this._victoryText = new Text({
 			text: "VICTORY!",
 			style: new TextStyle({
 				...FontStyles.scoreTextStyle,
@@ -76,15 +74,19 @@ export class GameResolutionDisplay extends Container {
 			y: -130,
 		});
 
-		this.addChild(victoryText);
+		const tableContainer = this.createTableContainer(playerName, enemyName);
 
-		this.createAllTextObjects();
+		this.continueButton = this.createContinueButton();
+		this.continueButton.x = -this.continueButton.width / 2;
+		this.continueButton.y = 184;
+
+		this.addChild(this._victoryText, this.continueButton, tableContainer);
 
 		this.interactive = false;
-		this.eventMode = "none";
+		this.eventMode = "auto";
 
-		this.alpha = 1;
-		this.visible = true;
+		this.alpha = 0;
+		this.visible = false;
 	}
 
 	/**
@@ -104,223 +106,126 @@ export class GameResolutionDisplay extends Container {
 				alpha: 1,
 				duration: 0.4,
 				ease: "power2.out",
-			})
-			.to(
-				this,
-				{
-					alpha: 0,
-					duration: 0.4,
-					ease: "power2.in",
-				},
-				"+=3"
-			);
+			});
+		return timeline;
+	}
+
+	public hide(): GSAPTimeline {
+		const timeline = gsap.timeline();
+
+		timeline.to(this, {
+			alpha: 0,
+			duration: 0.4,
+			ease: "power2.in",
+			onComplete: () => {
+				this.visible = false;
+			},
+		});
 
 		return timeline;
 	}
 
-	private createAllTextObjects(): void {
-		const bgWidth = 1400;
-		const tableY = 100;
-		const columnWidth = 280;
-		const labelWidth = 180;
-		const rowHeight = 60;
-		const headerFontSize = 36;
-		const rowFontSize = 30;
-		const totalFontSize = 36;
-		const messageFontSize = 48;
+	private createTableContainer(
+		playerName: string,
+		enemyName: string
+	): Container {
+		const headerStyle = new TextStyle({
+			fontFamily: "Arial",
+			fontSize: 30,
+			fill: "#291205",
+			fontWeight: "bold",
+		});
 
-		const totalTableWidth = labelWidth + columnWidth * 2;
-		const startX = (bgWidth - totalTableWidth) / 2;
-		const labelX = startX;
+		const playerHeader = new Text({
+			text: playerName,
+			style: headerStyle,
+			anchor: 0.5,
+		});
 
-		const columnsWidth = columnWidth * 2;
-		const columnsStartX = (bgWidth - columnsWidth) / 2;
-		const playerHeaderX = columnsStartX + columnWidth / 2;
-		const opponentHeaderX = columnsStartX + columnWidth + columnWidth / 2;
+		const opponentHeader = new Text({
+			text: enemyName,
+			style: headerStyle,
+			anchor: 0.5,
+		});
 
-		this._playerHeader = this.createText(
-			this._playerName,
-			playerHeaderX,
-			tableY,
-			headerFontSize,
-			"#FFD700"
+		this._tableData = new GameResolutionTableData(60, 200, this._labelStyle);
+
+		playerHeader.position.set(-50, -20);
+		opponentHeader.position.set(151, -20);
+
+		this._tableData.x = -250;
+		this._tableData.y = 30;
+
+		const tableContainer = new Container();
+		tableContainer.addChild(playerHeader, opponentHeader, this._tableData);
+
+		return tableContainer;
+	}
+
+	private createContinueButton(): Button {
+		this._continueText = new Text({
+			text: "Continue",
+			style: new TextStyle({
+				...FontStyles.scoreTextStyle,
+				fontSize: 36,
+			}),
+		});
+
+		const buttonBackground = new BorderDialog(250, 70, "dirt");
+
+		this._continueText.x =
+			(buttonBackground.width - this._continueText.width) / 2;
+		this._continueText.y =
+			(buttonBackground.height - this._continueText.height) / 2;
+
+		const button = new Button(() => {});
+
+		button.hitArea = new Rectangle(
+			0,
+			0,
+			buttonBackground.width,
+			buttonBackground.height
 		);
-		this._playerHeader.anchor.set(0.5, 0);
 
-		this._opponentHeader = this.createText(
-			this._enemyName,
-			opponentHeaderX,
-			tableY,
-			headerFontSize,
-			"#FFD700"
+		// Prevent defaults
+		button.off("pointerdown");
+		button.off("pointerup");
+
+		button.on("pointerdown", () => (button.tint = 0xaaaaaa));
+		button.on("pointerleave", () => (button.tint = 0xffffff));
+		button.on("pointerup", () =>
+			this.hide().then(() => (button.tint = 0xffffff))
 		);
-		this._opponentHeader.anchor.set(0.5, 0);
 
-		for (let i = 0; i < 3; i++) {
-			const yPos = tableY + rowHeight * (i + 1);
+		button.addChild(buttonBackground, this._continueText);
 
-			const labelText = this.createText(
-				`Round ${i + 1}:`,
-				labelX,
-				yPos,
-				rowFontSize,
-				"#AAAAAA"
-			);
-			labelText.anchor.set(0, 0);
-			labelText.visible = false;
-			this._roundLabels.push(labelText);
-
-			const playerText = this.createText(
-				"0",
-				playerHeaderX,
-				yPos,
-				rowFontSize,
-				"#FFFFFF"
-			);
-			playerText.anchor.set(0.5, 0);
-			playerText.visible = false;
-			this._playerScores.push(playerText);
-
-			const enemyText = this.createText(
-				"0",
-				opponentHeaderX,
-				yPos,
-				rowFontSize,
-				"#FFFFFF"
-			);
-			enemyText.anchor.set(0.5, 0);
-			enemyText.visible = false;
-			this._enemyScores.push(enemyText);
-		}
-
-		const separatorY = tableY + rowHeight * 4 + 10;
-		this._separatorLine = new Graphics();
-		this._separatorLine.moveTo(labelX, separatorY);
-		this._separatorLine.lineTo(startX + totalTableWidth, separatorY);
-		this._separatorLine.stroke({ width: 2, color: "#FFD700" });
-		this._tableContainer.addChild(this._separatorLine);
-
-		const totalY = separatorY + 40;
-		this._totalLabel = this.createText(
-			"Total:",
-			labelX,
-			totalY,
-			totalFontSize,
-			"#FFD700"
-		);
-		this._totalLabel.anchor.set(0, 0);
-
-		this._playerTotal = this.createText(
-			"0",
-			playerHeaderX,
-			totalY,
-			totalFontSize,
-			"#FFD700"
-		);
-		this._playerTotal.anchor.set(0.5, 0);
-
-		this._enemyTotal = this.createText(
-			"0",
-			opponentHeaderX,
-			totalY,
-			totalFontSize,
-			"#FFD700"
-		);
-		this._enemyTotal.anchor.set(0.5, 0);
-
-		const messageY = totalY + 80;
-		this._winnerMessage = this.createText(
-			"",
-			bgWidth / 2,
-			messageY,
-			messageFontSize,
-			"#FFD700"
-		);
-		this._winnerMessage.anchor.set(0.5, 0);
+		return button;
 	}
 
 	private updateTableContent(): void {
 		const roundScores = this._gameManager.roundScores;
-		const gameWinner = this._gameManager.gameData.gameWinner;
 
-		const bgWidth = 1400;
-		const tableY = 100;
-		const columnWidth = 280;
-		const labelWidth = 180;
-		const rowHeight = 60;
+		const winner = this._gameManager.gameData.gameWinner;
 
-		const totalTableWidth = labelWidth + columnWidth * 2;
-		const startX = (bgWidth - totalTableWidth) / 2;
-		const labelX = startX;
+		let tint = "#ffffff";
+		let text = "VICTORY!";
 
-		let playerTotal = 0;
-		let enemyTotal = 0;
-
-		roundScores.forEach((scores, index) => {
-			if (index < 3) {
-				this._roundLabels[index].visible = true;
-				this._playerScores[index].text = scores.playerScore.toString();
-				this._playerScores[index].visible = true;
-				this._enemyScores[index].text = scores.enemyScore.toString();
-				this._enemyScores[index].visible = true;
-
-				playerTotal += scores.playerScore;
-				enemyTotal += scores.enemyScore;
-			}
-		});
-
-		for (let i = roundScores.length; i < 3; i++) {
-			this._roundLabels[i].visible = false;
-			this._playerScores[i].visible = false;
-			this._enemyScores[i].visible = false;
+		if (winner === PlayerID.OPPONENT) {
+			tint = "#ff4444";
+			text = "DEFEAT!";
+		} else if (winner === null) {
+			text = "DRAW!";
 		}
 
-		const separatorY = tableY + rowHeight * (roundScores.length + 1) + 10;
-		this._separatorLine.clear();
-		this._separatorLine.moveTo(labelX, separatorY);
-		this._separatorLine.lineTo(startX + totalTableWidth, separatorY);
-		this._separatorLine.stroke({ width: 2, color: "#FFD700" });
+		this._victoryText.tint = tint;
+		this._victoryText.text = text;
 
-		const totalY = separatorY + 40;
-		this._totalLabel.y = totalY;
-		this._playerTotal.text = playerTotal.toString();
-		this._playerTotal.y = totalY;
-		this._enemyTotal.text = enemyTotal.toString();
-		this._enemyTotal.y = totalY;
+		roundScores.forEach((score, index) => {
+			const row = this._tableData.roundScoreRows[index];
+			if (!row) return;
 
-		const messageY = totalY + 80;
-		this._winnerMessage.y = messageY;
-
-		if (gameWinner === null) {
-			this._winnerMessage.text = "It's a Draw!";
-		} else {
-			this._winnerMessage.text =
-				gameWinner === PlayerID.PLAYER ? "You Win!" : "You Lose!";
-		}
-	}
-
-	private createText(
-		text: string,
-		x: number,
-		y: number,
-		fontSize: number,
-		color: string
-	): Text {
-		const textObj = new Text({
-			text: text,
-			style: {
-				fontFamily: "Arial",
-				fontSize: fontSize,
-				fill: color,
-				fontWeight: "bold",
-			},
+			row.playerScore.text = score.playerScore.toString();
+			row.enemyScore.text = score.enemyScore.toString();
 		});
-
-		textObj.x = x;
-		textObj.y = y;
-
-		this._tableContainer.addChild(textObj);
-
-		return textObj;
 	}
 }
