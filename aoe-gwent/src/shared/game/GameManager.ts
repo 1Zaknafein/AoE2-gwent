@@ -27,7 +27,7 @@ export class GameManager {
 	private readonly _allPlayingRowContainers: PlayingRowContainer[];
 	private readonly _playerDisplayManager: PlayerDisplayManager;
 
-	private _playerScores: Map<PlayerID, number> = new Map();
+	private _roundsWonMap: Map<PlayerID, number> = new Map();
 	private _roundScores: { playerScore: number; enemyScore: number }[] = [];
 
 	private readonly _maxRounds = 3;
@@ -74,8 +74,8 @@ export class GameManager {
 		this._player.deck.push(...CardDatabase.generateRandomDeck(30));
 		this._enemy.deck.push(...CardDatabase.generateRandomDeck(30));
 
-		this._playerScores.set(this._player.id, 0);
-		this._playerScores.set(this._enemy.id, 0);
+		this._roundsWonMap.set(this._player.id, 0);
+		this._roundsWonMap.set(this._enemy.id, 0);
 
 		this._player.hand.addCardsBatch(this._player.deck.splice(0, 2));
 		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 2));
@@ -117,29 +117,27 @@ export class GameManager {
 
 		let roundWinner = null;
 
-		console.log(this._player.score, this._enemy.score);
-
 		if (this._player.score > this._enemy.score) {
-			const currentScore = this._playerScores.get(this._player.id)!;
-			this._playerScores.set(this._player.id, currentScore + 1);
+			const currentScore = this._roundsWonMap.get(this._player.id)!;
+			this._roundsWonMap.set(this._player.id, currentScore + 1);
 
 			roundWinner = this._player.id;
 
 			this._playerDisplayManager.playerDisplay.setRoundWins(currentScore + 1);
 		} else if (this._enemy.score > this._player.score) {
-			const currentScore = this._playerScores.get(this._enemy.id)!;
-			this._playerScores.set(this._enemy.id, currentScore + 1);
+			const currentScore = this._roundsWonMap.get(this._enemy.id)!;
+			this._roundsWonMap.set(this._enemy.id, currentScore + 1);
 
 			roundWinner = this._enemy.id;
 
 			this._playerDisplayManager.enemyDisplay.setRoundWins(currentScore + 1);
 		} else {
 			// If it's a tie, both players get a point
-			const playerCurrentScore = this._playerScores.get(this._player.id)!;
-			this._playerScores.set(this._player.id, playerCurrentScore + 1);
+			const playerCurrentScore = this._roundsWonMap.get(this._player.id)!;
+			this._roundsWonMap.set(this._player.id, playerCurrentScore + 1);
 
-			const enemyCurrentScore = this._playerScores.get(this._enemy.id)!;
-			this._playerScores.set(this._enemy.id, enemyCurrentScore + 1);
+			const enemyCurrentScore = this._roundsWonMap.get(this._enemy.id)!;
+			this._roundsWonMap.set(this._enemy.id, enemyCurrentScore + 1);
 
 			this._playerDisplayManager.enemyDisplay.setRoundWins(
 				enemyCurrentScore + 1
@@ -150,17 +148,17 @@ export class GameManager {
 		}
 
 		// Game is BO3, players get a score point for winning a round.
-		const playerScore = this._playerScores.get(this._player.id)!;
-		const enemyScore = this._playerScores.get(this._enemy.id)!;
+		const playerScore = this._roundsWonMap.get(this._player.id)!;
+		const enemyScore = this._roundsWonMap.get(this._enemy.id)!;
+
+		const scoreToWin = Math.floor(this._maxRounds / 2) + 1;
 
 		this.gameData.roundWinner = roundWinner;
 
 		this.removeCardsFromBoard();
 
-		const scoreToWin = this._maxRounds / 2 + 1;
-
 		const scoreCondition =
-			playerScore >= scoreToWin || enemyScore >= scoreToWin;
+			playerScore === scoreToWin || enemyScore === scoreToWin;
 
 		const maxRoundsReached = this.gameData.roundNumber === this._maxRounds;
 
@@ -184,8 +182,8 @@ export class GameManager {
 	}
 
 	public endGame(): void {
-		this._playerScores.set(this._player.id, 0);
-		this._playerScores.set(this._enemy.id, 0);
+		this._roundsWonMap.set(this._player.id, 0);
+		this._roundsWonMap.set(this._enemy.id, 0);
 		this._roundScores = [];
 
 		// Clear all player card and score data.
