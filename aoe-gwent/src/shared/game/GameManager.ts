@@ -30,6 +30,8 @@ export class GameManager {
 	private _playerScores: Map<PlayerID, number> = new Map();
 	private _roundScores: { playerScore: number; enemyScore: number }[] = [];
 
+	private readonly _maxRounds = 3;
+
 	constructor(
 		player: Player,
 		enemy: Player,
@@ -75,8 +77,8 @@ export class GameManager {
 		this._playerScores.set(this._player.id, 0);
 		this._playerScores.set(this._enemy.id, 0);
 
-		this._player.hand.addCardsBatch(this._player.deck.splice(0, 15));
-		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 15));
+		this._player.hand.addCardsBatch(this._player.deck.splice(0, 2));
+		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 2));
 		this._enemy.hand.hideCards();
 
 		this._playerDisplayManager.playerDisplay.setRoundWins(0);
@@ -89,6 +91,11 @@ export class GameManager {
 	public startRound(): void {
 		const startingPlayer =
 			Math.random() < 0.5 ? this._player.id : this._enemy.id;
+
+		// Ensure scores update from previous round.
+		// Handles case where player passes instantly, so scores don't update before round end logic runs.
+		this._player.updateScore();
+		this._enemy.updateScore();
 
 		this.gameData.roundNumber += 1;
 
@@ -109,6 +116,8 @@ export class GameManager {
 		});
 
 		let roundWinner = null;
+
+		console.log(this._player.score, this._enemy.score);
 
 		if (this._player.score > this._enemy.score) {
 			const currentScore = this._playerScores.get(this._player.id)!;
@@ -148,10 +157,24 @@ export class GameManager {
 
 		this.removeCardsFromBoard();
 
-		if (playerScore >= 2 || enemyScore >= 2) {
+		const scoreToWin = this._maxRounds / 2 + 1;
+
+		const scoreCondition =
+			playerScore >= scoreToWin || enemyScore >= scoreToWin;
+
+		const maxRoundsReached = this.gameData.roundNumber === this._maxRounds;
+
+		if (scoreCondition || maxRoundsReached) {
 			this.gameData.phase = GamePhase.GAME_END;
+
+			// Handle tie scenario.
+			if (playerScore === enemyScore) {
+				this.gameData.gameWinner = null;
+				return;
+			}
+
 			this.gameData.gameWinner =
-				playerScore >= 2 ? this._player.id : this._enemy.id;
+				playerScore >= scoreToWin ? this._player.id : this._enemy.id;
 
 			return;
 		}
