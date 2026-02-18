@@ -140,16 +140,16 @@ export class PlayingRowContainer extends CardContainer {
 	/**
 	 * Apply weather effect overlay to the row
 	 */
-	public applyWeatherEffect(): void {
-		this.weatherEffect.show();
+	public async applyWeatherEffect(): Promise<void> {
 		this._weatherEffectApplied = true;
+		await this.weatherEffect.show();
 	}
 
 	/**
 	 * Remove weather effect overlay from the row
 	 */
-	public clearWeatherEffect(): void {
-		this.weatherEffect.hide();
+	public async clearWeatherEffect(): Promise<void> {
+		await this.weatherEffect.hide();
 		this._weatherEffectApplied = false;
 	}
 

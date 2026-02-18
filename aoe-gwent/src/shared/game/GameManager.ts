@@ -1,9 +1,4 @@
-import {
-	Card,
-	CardEffect,
-	CardType,
-	PlayingRowContainer,
-} from "../../entities/card";
+import { PlayingRowContainer } from "../../entities/card";
 import { PlayerDisplayManager } from "../../entities/player";
 import { Player } from "../../entities/player/Player";
 import { CardDatabase, GamePhase } from "../../local-server";
@@ -74,8 +69,8 @@ export class GameManager {
 	 * Start the game. Initializes decks and decides starting player.
 	 */
 	public startGame(): void {
-		this._player.deck.push(...CardDatabase.generateRandomDeck(30));
-		this._enemy.deck.push(...CardDatabase.generateRandomDeck(30));
+		this._player.deck.push(...CardDatabase.generateRandomDeck(50));
+		this._enemy.deck.push(...CardDatabase.generateRandomDeck(50));
 
 		this._roundsWonMap.set(this._player.id, 0);
 		this._roundsWonMap.set(this._enemy.id, 0);
@@ -236,14 +231,22 @@ export class GameManager {
 
 		// Handle one-off effects (weather etc) before calculating score.
 		if (card.cardData.onPlayEffect) {
-			card.cardData.onPlayEffect.fn({
-				player: this._player,
-				enemy: this._enemy,
-			});
+			const context = {
+				player: action.player,
+				enemy:
+					action.player.id === this._player.id ? this._enemy : this._player,
+			};
+
+			await card.cardData.onPlayEffect.fn(context);
 		}
 
 		// Calculate score for all cards, as some cards can affect multiple cards' scores.
 		this._scoreCalculator.calculateScore();
+
+		// After scores are calculated, we need to update the visuals for all cards on the board to reflect any changes.
+		this._allPlayingRowContainers.map((row) =>
+			row.cards.forEach((card) => card.updateScoreVisuals())
+		);
 
 		const otherPlayer =
 			player.id === this._player.id ? this._enemy : this._player;

@@ -31,7 +31,7 @@ export class WeatherEffect extends Container {
 	/**
 	 * Show the weather effect
 	 */
-	public show(): void {
+	public show(): GSAPTween {
 		if (this.animationTween) {
 			this.animationTween.kill();
 		}
@@ -44,12 +44,14 @@ export class WeatherEffect extends Container {
 			duration: 2,
 			ease: "power2.out",
 		});
+
+		return this.animationTween;
 	}
 
 	/**
 	 * Hide the weather effect with fade out animation
 	 */
-	public hide(): void {
+	public hide(): GSAPTween {
 		if (this.animationTween) {
 			this.animationTween.kill();
 		}
@@ -62,6 +64,8 @@ export class WeatherEffect extends Container {
 				this.visible = false;
 			},
 		});
+
+		return this.animationTween;
 	}
 
 	/**

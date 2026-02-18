@@ -126,9 +126,23 @@ export class CardAnimator {
 						transfers.delete(tween);
 					});
 				});
-				animationPromises.push(promise);
+
+				const scaleTween = new Promise<void>((resolve) => {
+					gsap.to(cardToAnimate.scale, {
+						x: container.cardScale,
+						y: container.cardScale,
+						duration: animationDuration,
+						ease: "power2.out",
+						onComplete: () => {
+							resolve();
+						},
+					});
+				});
+
+				animationPromises.push(promise, scaleTween);
 			} else {
 				cardToAnimate.position.set(targetX, targetY);
+				cardToAnimate.scale.set(container.cardScale);
 			}
 		});
 
@@ -150,7 +164,9 @@ export class CardAnimator {
 		const cardIndex = sourceContainer.cards.indexOf(card);
 
 		if (cardIndex < 0 || cardIndex >= sourceContainer.cards.length) {
-			throw new Error("Card not found in this container");
+			throw new Error(
+				"Card not found in this container " + sourceContainer.label
+			);
 		}
 
 		const cardToTransfer = sourceContainer.cards[cardIndex];

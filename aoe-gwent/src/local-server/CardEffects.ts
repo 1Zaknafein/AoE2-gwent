@@ -35,7 +35,9 @@ export type AuraEffectFunction = (context: BattlefieldContext) => {
 /**
  * Effect that triggers when card is played
  */
-export type TriggerEffectFunction = (context: BattlefieldContext) => void;
+export type TriggerEffectFunction = (
+	context: BattlefieldContext
+) => Promise<void>;
 
 /**
  * Self-targeting effects - cards that modify their own score
@@ -134,36 +136,48 @@ export const TriggerEffects = {
 	karambitSummon: {
 		id: "karambit_summon",
 		description: "Summons all other Karambit Warriors from hand and deck.",
-		fn: (context: BattlefieldContext): void => {
+		fn: async (context: BattlefieldContext): Promise<void> => {
 			const { hand, deck, melee, deckPosition } = context.player;
+
+			const animations: Promise<void>[] = [];
 
 			// Add all Karambit Warriors found in hand
 			hand.cards
 				.filter((c) => c.cardData.name === "Karambit Warrior")
 				.forEach((card) => {
-					melee.transferCardTo(card, melee);
-					("");
+					animations.push(hand.transferCardTo(card, melee));
 				});
 
 			// Add all Karambit Warriors found in deck
-			deck
-				.filter((c) => c.name === "Karambit Warrior")
-				.forEach((cardData) => {
-					melee.addCardWithAnimation(cardData, deckPosition);
-				});
+			const tempDeckData = deck.filter((c) => c.name === "Karambit Warrior");
+
+			tempDeckData.forEach((cardData) => {
+				animations.push(melee.addCardWithAnimation(cardData, deckPosition));
+
+				// Make sure to remove the card data from the deck!
+				deck.splice(deck.indexOf(cardData), 1);
+			});
+
+			await Promise.all(animations);
+
+			// Need to manually trigger card position update after adding cards with animation.
+			// If animating from both hand and deck, position is sometimes updated incorrectly.
+			melee.updateCardPositions();
 		},
 	} as EffectMetadata<TriggerEffectFunction>,
 
 	clearEffect: {
 		id: "clear_effect",
 		description: "Removes all weather effects from the battlefield.",
-		fn: (context: BattlefieldContext): void => {
-			context.player.melee.clearWeatherEffect();
-			context.player.ranged.clearWeatherEffect();
-			context.player.siege.clearWeatherEffect();
-			context.enemy.melee.clearWeatherEffect();
-			context.enemy.ranged.clearWeatherEffect();
-			context.enemy.siege.clearWeatherEffect();
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			await Promise.all([
+				context.player.melee.clearWeatherEffect(),
+				context.player.ranged.clearWeatherEffect(),
+				context.player.siege.clearWeatherEffect(),
+				context.enemy.melee.clearWeatherEffect(),
+				context.enemy.ranged.clearWeatherEffect(),
+				context.enemy.siege.clearWeatherEffect(),
+			]);
 
 			// Weather container is same for player and enemy.
 			context.player.weather.removeAllCards();
@@ -176,9 +190,11 @@ export const TriggerEffects = {
 	freezeEffect: {
 		id: "freeze_effect",
 		description: "Reduces strength of all melee units to 1.",
-		fn: (context: BattlefieldContext): void => {
-			context.player.melee.applyWeatherEffect();
-			context.enemy.melee.applyWeatherEffect();
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			await Promise.all([
+				context.player.melee.applyWeatherEffect(),
+				context.enemy.melee.applyWeatherEffect(),
+			]);
 		},
 	},
 
@@ -188,9 +204,11 @@ export const TriggerEffects = {
 	fogEffect: {
 		id: "fog_effect",
 		description: "Reduces strength of all ranged units to 1.",
-		fn: (context: BattlefieldContext): void => {
-			context.player.ranged.applyWeatherEffect();
-			context.enemy.ranged.applyWeatherEffect();
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			await Promise.all([
+				context.player.ranged.applyWeatherEffect(),
+				context.enemy.ranged.applyWeatherEffect(),
+			]);
 		},
 	},
 
@@ -200,9 +218,11 @@ export const TriggerEffects = {
 	rainEffect: {
 		id: "rain_effect",
 		description: "Reduces strength of all siege units to 1.",
-		fn: (context: BattlefieldContext): void => {
-			context.player.siege.applyWeatherEffect();
-			context.enemy.siege.applyWeatherEffect();
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			await Promise.all([
+				context.player.siege.applyWeatherEffect(),
+				context.enemy.siege.applyWeatherEffect(),
+			]);
 		},
 	},
 };

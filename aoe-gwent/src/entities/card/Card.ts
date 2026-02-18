@@ -15,11 +15,18 @@ export class Card extends Container {
 	private _showingBack: boolean = false;
 	private _scoreText?: Text;
 
+	private readonly _colors = {
+		normal: "#290e00",
+		buff: "#007900",
+		debuff: "#970000",
+	};
+
 	private static SCORE_TEXT_STYLE: Partial<TextStyle> = {
 		fontFamily: "Cinzel, serif",
 		fontSize: 40,
 		fontWeight: "bold",
 		fill: "#290e00",
+		stroke: { width: 1, color: "#290e00" },
 	};
 
 	constructor(cardData: CardData) {
@@ -63,7 +70,7 @@ export class Card extends Container {
 
 		this._scoreText = new Text({
 			text: this._cardData.score.toString(),
-			style: Card.SCORE_TEXT_STYLE,
+			style: new TextStyle({ ...Card.SCORE_TEXT_STYLE }),
 			anchor: 0.5,
 			x: -this._cardFace.width / 2 + 23,
 			y: -this._cardFace.height / 2 + 13,
@@ -110,6 +117,28 @@ export class Card extends Container {
 		if (this._icon) {
 			this._icon.visible = false;
 		}
+	}
+
+	/**
+	 * Depending on whether card's current value is larger or smaller than base score, update the visuals to show buff or debuff.
+	 */
+	public updateScoreVisuals(): void {
+		const baseScore = this.cardData.baseScore!;
+
+		const score = this.cardData.score;
+
+		if (!this._scoreText) return;
+
+		let color = this._colors.normal;
+
+		if (score > baseScore) {
+			color = this._colors.buff;
+		} else if (score < baseScore) {
+			color = this._colors.debuff;
+		}
+
+		this._scoreText.style.stroke = { width: 1, color };
+		this._scoreText.style.fill = color;
 	}
 
 	/**

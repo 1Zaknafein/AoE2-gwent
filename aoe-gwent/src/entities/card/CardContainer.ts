@@ -238,7 +238,7 @@ export class CardContainer extends PixiContainer {
 	 * Update card positions within the container.
 	 * Cards will be spaced evenly, and if they exceed maxWidth, they will overlap.
 	 */
-	private updateCardPositions(): void {
+	public updateCardPositions(): void {
 		if (this._cards.length === 0) return;
 		if (this._isAnimating) return;
 

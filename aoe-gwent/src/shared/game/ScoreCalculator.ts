@@ -47,7 +47,7 @@ export class ScoreCalculator {
 			}
 		}
 
-		// Calculate other aura effects.
+		// Calculate aura effects.
 		const effects = this.calculateAuraEffects(playerRows, enemyRows);
 
 		this._rowBuffMap.clear();
@@ -70,12 +70,14 @@ export class ScoreCalculator {
 			}
 		});
 
+		// Apply card score for player rows.
 		for (const row of playerRows) {
 			for (const card of row.cards) {
 				card.setScore(this.calculateCardScore(card, row, true));
 			}
 		}
 
+		// Apply card score for enemy rows.
 		for (const row of enemyRows) {
 			for (const card of row.cards) {
 				card.setScore(this.calculateCardScore(card, row, false));
