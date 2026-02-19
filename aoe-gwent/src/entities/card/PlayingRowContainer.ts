@@ -65,8 +65,8 @@ export class PlayingRowContainer extends CardContainer {
 
 		this.weatherEffect = new WeatherEffect(
 			weatherEffect,
-			config.width,
-			config.height
+			this.highlightOverlay.width,
+			this.highlightOverlay.height
 		);
 
 		this.typeIcon = this.createTypeIcon();
