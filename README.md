@@ -88,7 +88,4 @@ This project is for educational and entertainment purposes.
 
 ## Acknowledgments
 
-Inspired by GWENT: The Witcher Card Game and Age of Empires II by Ensemble Studios / Microsoft.
-
-- Inspired by GWENT: The Witcher Card Game
-- Age of Empires II by Ensemble Studios / Microsoft
+Inspired by Witcher 3: Wild Hunt Gwent minigame and Age of Empires II by World's Edge.
