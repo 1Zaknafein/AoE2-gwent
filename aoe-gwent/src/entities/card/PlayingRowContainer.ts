@@ -5,6 +5,7 @@ import { WeatherEffect } from "./WeatherEffect";
 import { gsap } from "gsap";
 import { CardEffect, CardType } from "../../local-server/CardDatabase";
 import { BorderDialog } from "../../ui/components/BorderDialog";
+import { BloomFilter } from "pixi-filters";
 
 export interface PlayingRowConfig {
 	label: string;
@@ -25,8 +26,12 @@ export class PlayingRowContainer extends CardContainer {
 	private scoreText: Text;
 	private config: PlayingRowConfig;
 
+	private bloomFilter: BloomFilter;
+
 	private _score = 0;
 	private _weatherEffectApplied = false;
+
+	private _strengthBoost = 0;
 
 	constructor(config: PlayingRowConfig) {
 		super(
@@ -38,6 +43,11 @@ export class PlayingRowContainer extends CardContainer {
 
 		this.label = config.label;
 		this.config = config;
+
+		this.bloomFilter = new BloomFilter({
+			quality: 1,
+			strength: 2,
+		});
 
 		this.rowBackground = new BorderDialog(config.width, config.height);
 		this.rowBackground.pivot.set(
@@ -87,6 +97,10 @@ export class PlayingRowContainer extends CardContainer {
 
 	public get weatherEffectApplied(): boolean {
 		return this._weatherEffectApplied;
+	}
+
+	public get strengthBoost(): number {
+		return this._strengthBoost;
 	}
 
 	/**
@@ -151,6 +165,42 @@ export class PlayingRowContainer extends CardContainer {
 	public async clearWeatherEffect(): Promise<void> {
 		await this.weatherEffect.hide();
 		this._weatherEffectApplied = false;
+	}
+
+	public async applyStrengthBoost(boostAmount: 1 | 2 | 3): Promise<void> {
+		if (this._strengthBoost >= boostAmount) {
+			return;
+		}
+
+		this._strengthBoost = boostAmount;
+
+		const extraAlpha = 0.2 * boostAmount;
+
+		let boostColor = "";
+
+		switch (boostAmount) {
+			case 1:
+				boostColor = "#ffffff";
+				break;
+			case 2:
+				boostColor = "#ffe058";
+				break;
+			case 3:
+				boostColor = "#fc5454";
+				break;
+		}
+
+		this.typeIcon.tint = boostColor;
+		this.typeIcon.alpha = 0.3 + extraAlpha;
+		this.typeIcon.filters = [this.bloomFilter];
+	}
+
+	public async clearStrengthBoost(): Promise<void> {
+		this._strengthBoost = 0;
+
+		this.typeIcon.tint = 0xffffff;
+		this.typeIcon.alpha = 0.3;
+		this.typeIcon.filters = [];
 	}
 
 	private createHighlight(): PixiGraphics {

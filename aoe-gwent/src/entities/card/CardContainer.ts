@@ -158,10 +158,10 @@ export class CardContainer extends PixiContainer {
 		this.updateCardPositions();
 	}
 
-	public removeCard(index?: number): void {
+	public removeCard(card: Card): void {
 		if (this._cards.length === 0) return;
 
-		const cardIndex = index !== undefined ? index : this._cards.length - 1;
+		const cardIndex = this._cards.indexOf(card);
 
 		if (cardIndex < 0 || cardIndex >= this._cards.length) return;
 
@@ -176,7 +176,7 @@ export class CardContainer extends PixiContainer {
 
 	public removeAllCards(): void {
 		while (this._cards.length > 0) {
-			this.removeCard();
+			this.removeCard(this._cards[0]);
 		}
 	}
 

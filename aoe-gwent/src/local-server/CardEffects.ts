@@ -225,4 +225,51 @@ export const TriggerEffects = {
 			]);
 		},
 	},
+
+	forgingEffect: {
+		id: "forging_effect",
+		description: "Increases strength of melee units by 1.",
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			context.player.melee.applyStrengthBoost(1);
+		},
+	},
+
+	ironCastingEffect: {
+		id: "iron_casting_effect",
+		description: "Increases strength of melee units by 2.",
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			context.player.melee.applyStrengthBoost(2);
+		},
+	},
+
+	blastFurnaceEffect: {
+		id: "blast_furnace_effect",
+		description: "Increases strength of melee units by 3.",
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			context.player.melee.applyStrengthBoost(3);
+		},
+	},
+
+	fletchingEffect: {
+		id: "fletching_effect",
+		description: "Increases strength of ranged units by 1.",
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			context.player.ranged.applyStrengthBoost(1);
+		},
+	},
+
+	bodkinArrowEffect: {
+		id: "bodkin_arrow_effect",
+		description: "Increases strength of ranged units by 2.",
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			context.player.ranged.applyStrengthBoost(2);
+		},
+	},
+	bracerEffect: {
+		id: "bracer_effect",
+		description: "Increases strength of ranged units by 3.",
+		fn: async (context: BattlefieldContext): Promise<void> => {
+			context.player.ranged.applyStrengthBoost(3);
+		},
+	},
 };

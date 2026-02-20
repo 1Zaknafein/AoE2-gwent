@@ -48,6 +48,14 @@ export const options: LoaderOptions = {
 					eagle_warrior: "./sprites/cards/card_faces/eagle_warrior.png",
 					woad_raider: "./sprites/cards/card_faces/woad_raider.png",
 
+					forging: "./sprites/cards/card_faces/forging.png",
+					iron_casting: "./sprites/cards/card_faces/iron_casting.png",
+					blast_furnace: "./sprites/cards/card_faces/blast_furnace.png",
+
+					fletching: "./sprites/cards/card_faces/fletching.png",
+					bodkin_arrow: "./sprites/cards/card_faces/bodkin_arrow.png",
+					bracer: "./sprites/cards/card_faces/bracer.png",
+
 					icon_melee: "./sprites/cards/icon_melee.png",
 					icon_ranged: "./sprites/cards/icon_ranged.png",
 					icon_siege: "./sprites/cards/icon_siege.png",

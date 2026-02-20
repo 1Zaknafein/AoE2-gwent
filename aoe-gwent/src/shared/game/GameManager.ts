@@ -1,4 +1,4 @@
-import { PlayingRowContainer } from "../../entities/card";
+import { CardEffect, PlayingRowContainer } from "../../entities/card";
 import { PlayerDisplayManager } from "../../entities/player";
 import { Player } from "../../entities/player/Player";
 import { CardDatabase, GamePhase } from "../../local-server";
@@ -153,7 +153,7 @@ export class GameManager {
 
 		this.gameData.roundWinner = roundWinner;
 
-		this.removeCardsFromBoard();
+		this.cleanBoardForNewRound();
 
 		const scoreCondition =
 			playerScore === scoreToWin || enemyScore === scoreToWin;
@@ -225,9 +225,13 @@ export class GameManager {
 			);
 		}
 
-		card.updateShowingScore();
-
-		await player.hand.transferCardTo(card, targetRow);
+		// Boost cards don't get animated, effects applied immediately on play.
+		if (card.cardData.effect !== CardEffect.BOOST) {
+			card.updateShowingScore();
+			await player.hand.transferCardTo(card, targetRow);
+		} else {
+			action.player.hand.removeCard(card);
+		}
 
 		// Handle one-off effects (weather etc) before calculating score.
 		if (card.cardData.onPlayEffect) {
@@ -272,11 +276,12 @@ export class GameManager {
 		}
 	}
 
-	private async removeCardsFromBoard(): Promise<void> {
+	private async cleanBoardForNewRound(): Promise<void> {
 		this._player.weather.removeAllCards();
 
 		for (const rowContainer of this._allPlayingRowContainers) {
 			rowContainer.clearWeatherEffect();
+			rowContainer.clearStrengthBoost();
 		}
 
 		await Promise.all([

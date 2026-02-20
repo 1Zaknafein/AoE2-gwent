@@ -4,6 +4,7 @@ import {
 	CardDatabase,
 	CardData,
 	CardType,
+	CardEffect,
 } from "../../local-server/CardDatabase.js";
 
 export class Card extends Container {
@@ -87,12 +88,15 @@ export class Card extends Container {
 
 			if (this._cardData.type === CardType.WEATHER) {
 				this._icon.texture = Texture.from("icon_weather");
-				this._icon.visible = true;
-				this._icon.scale.set(0.5);
-				this._icon.x = -this._cardFace.width / 2 + 23;
-				this._icon.y = -this._cardFace.height / 2 + 13;
-				this._icon.tint = "#290e00";
+			} else if (this._cardData.effect === CardEffect.BOOST) {
+				this._icon.texture = Texture.from(`icon_${this._cardData.type}`);
 			}
+
+			this._icon.visible = true;
+			this._icon.scale.set(0.5);
+			this._icon.x = -this._cardFace.width / 2 + 23;
+			this._icon.y = -this._cardFace.height / 2 + 13;
+			this._icon.tint = "#290e00";
 		}
 
 		this.addChild(this._scoreText);

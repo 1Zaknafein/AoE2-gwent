@@ -1,4 +1,4 @@
-import { Card, CardContainer, PlayingRowContainer } from "../../entities/card";
+import { Card, PlayingRowContainer } from "../../entities/card";
 import { Player } from "../../entities/player/Player";
 import { BattlefieldContext } from "../../local-server/CardEffects";
 
@@ -73,14 +73,14 @@ export class ScoreCalculator {
 		// Apply card score for player rows.
 		for (const row of playerRows) {
 			for (const card of row.cards) {
-				card.setScore(this.calculateCardScore(card, row, true));
+				card.setScore(this.calculateCardScore(card, true));
 			}
 		}
 
 		// Apply card score for enemy rows.
 		for (const row of enemyRows) {
 			for (const card of row.cards) {
-				card.setScore(this.calculateCardScore(card, row, false));
+				card.setScore(this.calculateCardScore(card, false));
 			}
 		}
 
@@ -88,11 +88,7 @@ export class ScoreCalculator {
 		this._enemy.updateScore();
 	}
 
-	private calculateCardScore(
-		card: Card,
-		cardContainer: CardContainer,
-		isPlayer: boolean
-	): number {
+	private calculateCardScore(card: Card, isPlayer: boolean): number {
 		const data = card.cardData;
 
 		const context: BattlefieldContext = {
@@ -101,13 +97,6 @@ export class ScoreCalculator {
 		};
 
 		let newScore = data.score;
-
-		if (
-			cardContainer instanceof PlayingRowContainer &&
-			cardContainer.weatherEffectApplied
-		) {
-			newScore = 1;
-		}
 
 		if (data.selfEffect) {
 			newScore += data.selfEffect.fn(card, context);
@@ -139,6 +128,13 @@ export class ScoreCalculator {
 		}[] = [];
 
 		for (const row of playerRows) {
+			if (row.strengthBoost) {
+				effects.push({
+					affectedRow: row,
+					effectValue: row.strengthBoost,
+				});
+			}
+
 			for (const card of row.cards) {
 				const effect = card.cardData.auraEffect?.fn(contextPlayer);
 
@@ -152,6 +148,13 @@ export class ScoreCalculator {
 		}
 
 		for (const row of enemyRows) {
+			if (row.strengthBoost) {
+				effects.push({
+					affectedRow: row,
+					effectValue: row.strengthBoost,
+				});
+			}
+
 			for (const card of row.cards) {
 				const effect = card.cardData.auraEffect?.fn(contextEnemy);
 
