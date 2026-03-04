@@ -29,6 +29,9 @@ export class GameManager {
 
 	private readonly _scoreCalculator: ScoreCalculator;
 
+	private readonly _playerRows: PlayingRowContainer[];
+	private readonly _enemyRows: PlayingRowContainer[];
+
 	constructor(
 		player: Player,
 		enemy: Player,
@@ -52,6 +55,17 @@ export class GameManager {
 			this._player.melee,
 			this._player.ranged,
 			this._player.siege,
+			this._enemy.melee,
+			this._enemy.ranged,
+			this._enemy.siege,
+		];
+
+		this._playerRows = [
+			this._player.melee,
+			this._player.ranged,
+			this._player.siege,
+		];
+		this._enemyRows = [
 			this._enemy.melee,
 			this._enemy.ranged,
 			this._enemy.siege,
@@ -235,17 +249,43 @@ export class GameManager {
 
 		// Handle one-off effects (weather etc) before calculating score.
 		if (card.cardData.onPlayEffect) {
+			const oppositePlayer =
+				player.id === this._player.id ? this._enemy : this._player;
+
 			const context = {
-				player: action.player,
-				enemy:
-					action.player.id === this._player.id ? this._enemy : this._player,
+				player: {
+					melee: action.player.melee,
+					ranged: action.player.ranged,
+					siege: action.player.siege,
+					weather: action.player.weather,
+					hand: action.player.hand,
+					deck: action.player.deck,
+					deckPosition: action.player.deckPosition,
+				},
+				enemy: {
+					melee: oppositePlayer.melee,
+					ranged: oppositePlayer.ranged,
+					siege: oppositePlayer.siege,
+					weather: oppositePlayer.weather,
+					hand: oppositePlayer.hand,
+					deck: oppositePlayer.deck,
+					deckPosition: oppositePlayer.deckPosition,
+				},
 			};
 
 			await card.cardData.onPlayEffect.fn(context);
 		}
 
 		// Calculate score for all cards, as some cards can affect multiple cards' scores.
-		this._scoreCalculator.calculateScore();
+		const updatedScores = this._scoreCalculator.calculateScore(
+			this._playerRows,
+			this._enemyRows
+		);
+
+		updatedScores.forEach((score, card) => card.setScore(score));
+
+		this._player.updateScore();
+		this._enemy.updateScore();
 
 		// After scores are calculated, we need to update the visuals for all cards on the board to reflect any changes.
 		this._allPlayingRowContainers.map((row) =>

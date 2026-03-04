@@ -1,9 +1,31 @@
-import { Card, PlayingRowContainer } from "../entities/card";
-import { Player } from "../entities/player/Player";
+import {
+	Card,
+	CardData,
+	HandContainer,
+	PlayingRowContainer,
+} from "../entities/card";
+import { WeatherRowContainer } from "../entities/card/WeatherRowContainer";
 
 export interface BattlefieldContext {
-	player: Player;
-	enemy: Player;
+	player: {
+		melee: PlayingRowContainer;
+		ranged: PlayingRowContainer;
+		siege: PlayingRowContainer;
+		weather: WeatherRowContainer;
+		hand: HandContainer;
+		deck: CardData[];
+		deckPosition: { x: number; y: number };
+	};
+
+	enemy: {
+		melee: PlayingRowContainer;
+		ranged: PlayingRowContainer;
+		siege: PlayingRowContainer;
+		hand: HandContainer;
+		deck: CardData[];
+		weather: WeatherRowContainer;
+		deckPosition: { x: number; y: number };
+	};
 }
 
 /**

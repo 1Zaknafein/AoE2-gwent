@@ -7,6 +7,7 @@ export class ScoreCalculator {
 	private readonly _enemy: Player;
 
 	private readonly _rowBuffMap: Map<PlayingRowContainer, number>;
+	private readonly _cardScoreMap: Map<Card, number> = new Map();
 
 	constructor(player: Player, enemy: Player) {
 		this._player = player;
@@ -14,36 +15,25 @@ export class ScoreCalculator {
 		this._rowBuffMap = new Map();
 	}
 
-	public calculateScore(): void {
-		const playerRows = [
-			this._player.melee,
-			this._player.ranged,
-			this._player.siege,
-		];
-		const enemyRows = [
-			this._enemy.melee,
-			this._enemy.ranged,
-			this._enemy.siege,
-		];
-
+	public calculateScore(
+		playerRows: PlayingRowContainer[],
+		enemyRows: PlayingRowContainer[]
+	): Map<Card, number> {
 		const allRows = [...playerRows, ...enemyRows];
+
+		this._cardScoreMap.clear();
 
 		// Reset scores to base values before applying any effects.
 		for (const row of allRows) {
-			const hasWeatherEffect =
-				row instanceof PlayingRowContainer && row.weatherEffectApplied;
-
 			for (const card of row.cards) {
 				if (card.cardData.baseScore === undefined) {
 					throw new Error(`Card ${card.cardData.name} is missing baseScore!`);
 				}
 
-				// We can apply weather effects here.
-				if (hasWeatherEffect) {
-					card.setScore(1);
-				} else {
-					card.setScore(card.cardData.baseScore);
-				}
+				this._cardScoreMap.set(
+					card,
+					row.weatherEffectApplied ? 1 : card.cardData.baseScore
+				);
 			}
 		}
 
@@ -65,27 +55,28 @@ export class ScoreCalculator {
 		// Apply row buffs/debuffs from aura effects to the cards.
 		this._rowBuffMap.forEach((buffAmount, row) => {
 			for (const card of row.cards) {
-				const newScore = card.cardData.score + buffAmount;
-				card.setScore(Math.max(newScore, 1));
+				const oldScore = this._cardScoreMap.get(card)!;
+				const newScore = oldScore + buffAmount;
+
+				this._cardScoreMap.set(card, Math.max(newScore, 1));
 			}
 		});
 
 		// Apply card score for player rows.
 		for (const row of playerRows) {
 			for (const card of row.cards) {
-				card.setScore(this.calculateCardScore(card, true));
+				this._cardScoreMap.set(card, this.calculateCardScore(card, true));
 			}
 		}
 
 		// Apply card score for enemy rows.
 		for (const row of enemyRows) {
 			for (const card of row.cards) {
-				card.setScore(this.calculateCardScore(card, false));
+				this._cardScoreMap.set(card, this.calculateCardScore(card, false));
 			}
 		}
 
-		this._player.updateScore();
-		this._enemy.updateScore();
+		return new Map(this._cardScoreMap);
 	}
 
 	private calculateCardScore(card: Card, isPlayer: boolean): number {
@@ -96,7 +87,7 @@ export class ScoreCalculator {
 			enemy: isPlayer ? this._enemy : this._player,
 		};
 
-		let newScore = data.score;
+		let newScore = this._cardScoreMap.get(card)!;
 
 		if (data.selfEffect) {
 			newScore += data.selfEffect.fn(card, context);
