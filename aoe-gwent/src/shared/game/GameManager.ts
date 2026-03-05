@@ -1,13 +1,7 @@
-import {
-	CardData,
-	CardEffect,
-	CardType,
-	PlayingRowContainer,
-} from "../../entities/card";
+import { CardEffect, PlayingRowContainer } from "../../entities/card";
 import { PlayerDisplayManager } from "../../entities/player";
 import { Player } from "../../entities/player/Player";
 import { CardDatabase, GamePhase } from "../../local-server";
-import { AuraEffects } from "../../local-server/CardEffects";
 import {
 	ActionType,
 	GameData,
@@ -74,16 +68,26 @@ export class GameManager {
 	/**
 	 * Start the game. Initializes decks and decides starting player.
 	 */
-	public startGame(): void {
+	public async startGame(): Promise<void> {
 		this._player.deck.push(...CardDatabase.generateRandomDeck(50));
 		this._enemy.deck.push(...CardDatabase.generateRandomDeck(50));
 
 		this._roundsWonMap.set(this._player.id, 0);
 		this._roundsWonMap.set(this._enemy.id, 0);
 
-		this._player.hand.addCardsBatch(this._player.deck.splice(0, 10));
-		this._enemy.hand.addCardsBatch(this._enemy.deck.splice(0, 10));
+		const addingCardAnimPlayer = this._player.hand.addCardsWithAnimation(
+			this._player.deck.splice(0, 10),
+			this._player.deckPosition
+		);
+
+		const addingCardAnimEnemy = this._enemy.hand.addCardsWithAnimation(
+			this._enemy.deck.splice(0, 10),
+			this._enemy.deckPosition
+		);
+
 		this._enemy.hand.hideCards();
+
+		await Promise.all([addingCardAnimPlayer, addingCardAnimEnemy]);
 
 		this._playerDisplayManager.playerDisplay.setRoundWins(0);
 		this._playerDisplayManager.enemyDisplay.setRoundWins(0);

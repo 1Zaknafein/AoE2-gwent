@@ -14,8 +14,10 @@ export class RoundStartState extends State {
 	}
 
 	public async execute(): Promise<StateName> {
+		await this.delay(0.5);
+
 		if (this.gameManager.gameData.roundNumber === 0) {
-			this.gameManager.startGame();
+			await this.gameManager.startGame();
 		}
 
 		this.gameManager.startRound();

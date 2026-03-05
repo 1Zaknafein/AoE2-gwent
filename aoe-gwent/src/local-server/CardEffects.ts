@@ -173,14 +173,17 @@ export const TriggerEffects = {
 			// Add all Karambit Warriors found in deck
 			const tempDeckData = deck.filter((c) => c.name === "Karambit Warrior");
 
-			tempDeckData.forEach((cardData) => {
-				animations.push(melee.addCardWithAnimation(cardData, deckPosition));
+			const animTimeline = melee.addCardsWithAnimation(
+				tempDeckData,
+				deckPosition
+			);
 
-				// Make sure to remove the card data from the deck!
+			// Make sure to remove the card data from the deck!
+			tempDeckData.forEach((cardData) => {
 				deck.splice(deck.indexOf(cardData), 1);
 			});
 
-			await Promise.all(animations);
+			await Promise.all([animations, animTimeline]);
 
 			// Need to manually trigger card position update after adding cards with animation.
 			// If animating from both hand and deck, position is sometimes updated incorrectly.

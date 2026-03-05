@@ -64,6 +64,9 @@ export class Card extends Container {
 		this._cardFace.scale.set(0.5);
 		this.addChild(this._cardFace);
 
+		this._cardBack.width = this._cardFace.width;
+		this._cardBack.height = this._cardFace.height;
+
 		this._cardBorder = Sprite.from("card_border");
 		this._cardBorder.anchor.set(0.5);
 		this._cardBorder.y = -3;

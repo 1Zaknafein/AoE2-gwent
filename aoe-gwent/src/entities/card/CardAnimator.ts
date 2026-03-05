@@ -1,7 +1,7 @@
 import { gsap } from "gsap";
-import { CardContainer } from "./CardContainer";
 import { CardData } from "../../local-server/CardDatabase";
 import { Card } from "./Card";
+import { CardContainer } from "./CardContainer";
 
 /**
  * Handles card animations for transfers and placements
@@ -20,134 +20,98 @@ export class CardAnimator {
 	}
 
 	/**
-	 * Add a card with animation from a specific global position.
-	 * @param container Container to add card to
-	 * @param cardData Card data to add
-	 * @param fromGlobalPosition Starting position for the animation (global coordinates)
+	 * Add multiple cards with animation from a specific global position.
+	 * All final positions are pre-calculated so every card lands in the correct spot.
+	 * @param container Container to add cards to
+	 * @param cardDataArray Card data items to add
+	 * @param fromGlobalPosition Starting position for each card's animation (global coordinates)
 	 * @param animationDuration Duration of the animation in seconds
 	 */
-	public async addCardWithAnimation(
+	public addCardsWithAnimation(
 		container: CardContainer,
-		cardData: CardData,
+		cardDataArray: CardData[],
 		fromGlobalPosition: { x: number; y: number },
 		animationDuration: number = 0.5
-	): Promise<void> {
-		const card = new Card(cardData);
+	): GSAPTimeline {
+		const existingCount = container.cards.length;
+		const totalCount = existingCount + cardDataArray.length;
 
-		// Add card to container first but don't position it yet
-		container.cards.push(card);
-		container.addChild(card);
-
-		card.eventMode = container.areCardsInteractive ? "static" : "none";
-		card.cursor = container.areCardsInteractive ? "pointer" : "default";
-
-		const cardCount = container.cards.length;
 		let cardWidth = 100;
+		let firstNewCard: Card | null = null;
 
-		if (container.cards.length > 1) {
+		if (container.cards.length > 0) {
 			cardWidth = container.cards[0].width;
-		} else {
-			cardWidth = card.width;
+		} else if (cardDataArray.length > 0) {
+			firstNewCard = new Card(cardDataArray[0]);
+			cardWidth = firstNewCard.width * container.cardScale;
 		}
 
-		const totalWidthNeeded =
-			cardCount * cardWidth + (cardCount - 1) * container.cardSpacing;
+		const allPositions = this.computeLayout(totalCount, cardWidth, container);
+		const localStart = container.toLocal(fromGlobalPosition);
 
-		let actualSpacing = container.cardSpacing;
-		let overlap = 0;
+		const newCards: Card[] = cardDataArray.map((data, i) => {
+			const card = i === 0 && firstNewCard ? firstNewCard : new Card(data);
 
-		// If cards exceed max width, calculate overlap
-		if (totalWidthNeeded > container.maxWidth) {
-			const availableSpaceForSpacing =
-				container.maxWidth - cardCount * cardWidth;
+			container.cards.push(card);
+			container.addChild(card);
+			card.position.set(localStart.x, localStart.y);
+			card.scale.set(container.cardScale * 0.9);
+			card.eventMode = container.areCardsInteractive ? "static" : "none";
+			card.cursor = container.areCardsInteractive ? "pointer" : "default";
+			container.emit("cardAdded", { card, container });
 
-			if (availableSpaceForSpacing >= 0) {
-				actualSpacing = availableSpaceForSpacing / (cardCount - 1);
-			} else {
-				actualSpacing = 0;
-				overlap = Math.abs(availableSpaceForSpacing) / (cardCount - 1);
-			}
-		}
-
-		const totalWidth =
-			overlap > 0
-				? container.maxWidth
-				: cardCount * cardWidth + (cardCount - 1) * actualSpacing;
-
-		const startX = -totalWidth / 2 + cardWidth / 2;
-
-		const localStartPos = container.toLocal(fromGlobalPosition);
-
-		// Set the card to start at the deck position
-		card.position.set(localStartPos.x, localStartPos.y);
-
-		container.emit("cardAdded", { card, container });
-
-		const cardPositions: { card: Card; targetX: number; targetY: number }[] =
-			[];
-
-		container.cards.forEach((cardInContainer, index) => {
-			let targetX: number;
-			if (overlap > 0) {
-				targetX = startX + index * (cardWidth - overlap);
-			} else {
-				targetX = startX + index * (cardWidth + actualSpacing);
-			}
-
-			cardPositions.push({
-				card: cardInContainer,
-				targetX: targetX,
-				targetY: 0,
-			});
+			return card;
 		});
 
-		const animationPromises: Promise<void>[] = [];
+		const timeline = gsap.timeline();
 
-		cardPositions.forEach(({ card: cardToAnimate, targetX, targetY }) => {
-			const needsAnimation =
-				Math.abs(cardToAnimate.x - targetX) > 1 ||
-				Math.abs(cardToAnimate.y - targetY) > 1;
+		container.cards.slice(0, existingCount).forEach((card, index) => {
+			const { x, y } = allPositions[index];
 
-			if (needsAnimation) {
-				const promise = new Promise<void>((resolve) => {
-					const tween = gsap.to(cardToAnimate, {
-						x: targetX,
-						y: targetY,
-						duration: animationDuration,
-						ease: "power2.out",
-						onComplete: () => {
-							resolve();
-						},
-					});
-
-					const transfers = this.getActiveTransfers(container);
-					transfers.add(tween);
-					tween.then(() => {
-						transfers.delete(tween);
-					});
-				});
-
-				const scaleTween = new Promise<void>((resolve) => {
-					gsap.to(cardToAnimate.scale, {
+			if (Math.abs(card.x - x) > 1 || Math.abs(card.y - y) > 1) {
+				timeline.to(
+					card,
+					{ x, y, duration: animationDuration, ease: "power2.out" },
+					"<+0.1"
+				);
+				timeline.to(
+					card.scale,
+					{
 						x: container.cardScale,
 						y: container.cardScale,
 						duration: animationDuration,
 						ease: "power2.out",
-						onComplete: () => {
-							resolve();
-						},
-					});
-				});
-
-				animationPromises.push(promise, scaleTween);
+					},
+					"<"
+				);
 			} else {
-				cardToAnimate.position.set(targetX, targetY);
-				cardToAnimate.scale.set(container.cardScale);
+				card.position.set(x, y);
+				card.scale.set(container.cardScale);
 			}
 		});
 
-		// Wait for all animations to complete
-		return Promise.all(animationPromises).then(() => {});
+		// Animate new cards staggered.
+		newCards.forEach((card, newIndex) => {
+			const { x, y } = allPositions[existingCount + newIndex];
+
+			timeline.to(
+				card,
+				{ x, y, duration: animationDuration, ease: "power2.out" },
+				"<+=0.03"
+			);
+			timeline.to(
+				card.scale,
+				{
+					x: container.cardScale,
+					y: container.cardScale,
+					duration: animationDuration,
+					ease: "power2.out",
+				},
+				"<"
+			);
+		});
+
+		return timeline;
 	}
 
 	/**
@@ -291,51 +255,65 @@ export class CardAnimator {
 		targetContainer: CardContainer,
 		cardIndex: number
 	): { x: number; y: number } {
-		const totalCards = targetContainer.cards.length + 1; // +1 for the card that will be added
-
 		let cardWidth = 100;
 
 		if (targetContainer.cards.length > 0) {
 			cardWidth = targetContainer.cards[0].width;
 		} else if (sourceContainer.cards.length > 0) {
-			cardWidth = sourceContainer.cards[0].width;
+			cardWidth =
+				(sourceContainer.cards[0].width / sourceContainer.cardScale) *
+				targetContainer.cardScale;
 		}
 
-		const cardCount = totalCards;
-		const totalWidthNeeded =
-			cardCount * cardWidth + (cardCount - 1) * targetContainer.cardSpacing;
+		const totalCards = targetContainer.cards.length + 1; // +1 for the card being added
 
-		let actualSpacing = targetContainer.cardSpacing;
+		return this.computeLayout(totalCards, cardWidth, targetContainer)[
+			cardIndex
+		];
+	}
+
+	/**
+	 * Compute all card positions for a given total card count in a container.
+	 * @param totalCards Total number of cards after placement
+	 * @param cardWidth Width of a single card
+	 * @param container Target container (used for maxWidth and cardSpacing)
+	 */
+	private computeLayout(
+		totalCards: number,
+		cardWidth: number,
+		container: CardContainer
+	): { x: number; y: number }[] {
+		const totalWidthNeeded =
+			totalCards * cardWidth + (totalCards - 1) * container.cardSpacing;
+
+		let actualSpacing = container.cardSpacing;
 		let overlap = 0;
 
-		// If cards exceed max width, calculate overlap
-		if (totalWidthNeeded > targetContainer.maxWidth) {
+		if (totalWidthNeeded > container.maxWidth) {
 			const availableSpaceForSpacing =
-				targetContainer.maxWidth - cardCount * cardWidth;
+				container.maxWidth - totalCards * cardWidth;
 
 			if (availableSpaceForSpacing >= 0) {
-				actualSpacing = availableSpaceForSpacing / (cardCount - 1);
+				actualSpacing = availableSpaceForSpacing / (totalCards - 1);
 			} else {
 				actualSpacing = 0;
-				overlap = Math.abs(availableSpaceForSpacing) / (cardCount - 1);
+				overlap = Math.abs(availableSpaceForSpacing) / (totalCards - 1);
 			}
 		}
 
 		const totalWidth =
 			overlap > 0
-				? targetContainer.maxWidth
-				: cardCount * cardWidth + (cardCount - 1) * actualSpacing;
+				? container.maxWidth
+				: totalCards * cardWidth + (totalCards - 1) * actualSpacing;
 
 		const startX = -totalWidth / 2 + cardWidth / 2;
 
-		let targetX: number;
-
-		if (overlap > 0) {
-			targetX = startX + cardIndex * (cardWidth - overlap);
-		} else {
-			targetX = startX + cardIndex * (cardWidth + actualSpacing);
-		}
-
-		return { x: targetX, y: 0 };
+		return Array.from({ length: totalCards }, (_, i) => ({
+			x:
+				overlap > 0
+					? startX + i * (cardWidth - overlap)
+					: startX + i * (cardWidth + actualSpacing),
+			y: 0,
+		}));
 	}
 }

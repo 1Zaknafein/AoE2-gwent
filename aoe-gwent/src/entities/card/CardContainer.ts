@@ -212,23 +212,6 @@ export class CardContainer extends PixiContainer {
 	}
 
 	/**
-	 * Transfer multiple cards from this container to a target container.
-	 * All final positions are pre-calculated upfront so cards land in the correct spots.
-	 * @param cards Cards to transfer.
-	 * @param targetContainer Target container.
-	 */
-	public async transferCardsTo(
-		cards: Card[],
-		targetContainer: CardContainer
-	): Promise<void> {
-		return CardContainer.cardAnimator.transferCards(
-			cards,
-			this,
-			targetContainer
-		);
-	}
-
-	/**
 	 * Transfer all cards from this container to a target container with staggered animations
 	 */
 	public async transferAllCardsTo(
