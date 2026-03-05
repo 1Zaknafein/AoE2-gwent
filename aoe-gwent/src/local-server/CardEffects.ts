@@ -206,9 +206,6 @@ export const TriggerEffects = {
 		},
 	},
 
-	/**
-	 * Freeze: Decreases strength of all melee units to 1
-	 */
 	freezeEffect: {
 		id: "freeze_effect",
 		description: "Reduces strength of all melee units to 1.",
@@ -220,9 +217,6 @@ export const TriggerEffects = {
 		},
 	},
 
-	/**
-	 * Fog: Decreases strength of all ranged units to 1
-	 */
 	fogEffect: {
 		id: "fog_effect",
 		description: "Reduces strength of all ranged units to 1.",
@@ -234,9 +228,6 @@ export const TriggerEffects = {
 		},
 	},
 
-	/**
-	 * Rain: Decreases strength of all siege units to 1
-	 */
 	rainEffect: {
 		id: "rain_effect",
 		description: "Reduces strength of all siege units to 1.",
@@ -287,6 +278,7 @@ export const TriggerEffects = {
 			context.player.ranged.applyStrengthBoost(2);
 		},
 	},
+
 	bracerEffect: {
 		id: "bracer_effect",
 		description: "Increases strength of ranged units by 3.",
