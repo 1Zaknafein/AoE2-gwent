@@ -54,7 +54,7 @@ export class BotPlayer extends Player {
 			};
 		}
 
-		const passChance = 0.01;
+		const passChance = 0.1;
 
 		const optimalCard = this.findOptimalCard();
 		const targetContainer = this._containerMap.get(optimalCard.cardData.type);
@@ -63,11 +63,11 @@ export class BotPlayer extends Player {
 
 		let pass = false;
 
-		if (this.score > this._otherPlayer.score * 2 && this.score > 10) {
+		if (this._otherPlayer.hasPassed && this.score > this._otherPlayer.score) {
+			pass = true;
+		} else if (this.score > this._otherPlayer.score * 1.5 && this.score > 10) {
 			pass = true;
 		} else if (Math.random() < passChance) {
-			pass = true;
-		} else if (cards.length === 0) {
 			pass = true;
 		}
 
