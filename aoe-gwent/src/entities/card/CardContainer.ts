@@ -1,7 +1,7 @@
+import { gsap } from "gsap";
 import { FederatedPointerEvent } from "pixi.js";
 import { PixiContainer } from "../../plugins/engine";
 import { Card, CardData, CardType } from "../card";
-import { gsap } from "gsap";
 import { CardAnimator } from "./CardAnimator";
 
 export enum CardContainerLayoutType {
@@ -10,7 +10,8 @@ export enum CardContainerLayoutType {
 }
 
 export class CardContainer extends PixiContainer {
-	private _cards: Card[] = [];
+	public cards: Card[] = [];
+
 	private _maxWidth: number;
 	private _cardSpacing: number = 5;
 	private _isAnimating: boolean = false;
@@ -42,11 +43,7 @@ export class CardContainer extends PixiContainer {
 	}
 
 	public get cardCount(): number {
-		return this._cards.length;
-	}
-
-	public get cards() {
-		return this._cards;
+		return this.cards.length;
 	}
 
 	public get cardScale(): number {
@@ -100,12 +97,12 @@ export class CardContainer extends PixiContainer {
 	}
 
 	public getAllCards(): Card[] {
-		return this._cards;
+		return this.cards;
 	}
 
 	public addCard(cardData: CardData): void {
 		const card = new Card(cardData);
-		this._cards.push(card);
+		this.cards.push(card);
 		this.addChild(card);
 
 		card.scale.set(this._cardScale);
@@ -119,17 +116,18 @@ export class CardContainer extends PixiContainer {
 	}
 
 	/**
-	 * Add a card with animation from a specific global position.
-	 * @param cardData Card data to add.
-	 * @param fromGlobalPosition Starting position for the animation (global coordinates).
-	 * @param animationDuration Duration of the animation in seconds.
+	 * Add multiple cards with animation from a specific global position.
+	 * All final positions are pre-calculated so every card lands in the correct spot.
+	 * @param cardData Card data items to add.
+	 * @param fromGlobalPosition Starting position for the animations (global coordinates).
+	 * @param animationDuration Duration of each card's animation in seconds.
 	 */
-	public async addCardWithAnimation(
-		cardData: CardData,
+	public addCardsWithAnimation(
+		cardData: CardData[],
 		fromGlobalPosition: { x: number; y: number },
 		animationDuration: number = 0.5
-	): Promise<void> {
-		return CardContainer.cardAnimator.addCardWithAnimation(
+	): GSAPTimeline {
+		return CardContainer.cardAnimator.addCardsWithAnimation(
 			this,
 			cardData,
 			fromGlobalPosition,
@@ -145,7 +143,7 @@ export class CardContainer extends PixiContainer {
 	public addCardsBatch(cardData: CardData[]): void {
 		cardData.forEach((cardData) => {
 			const card = new Card(cardData);
-			this._cards.push(card);
+			this.cards.push(card);
 			this.addChild(card);
 
 			card.scale.set(this._cardScale);
@@ -159,14 +157,14 @@ export class CardContainer extends PixiContainer {
 	}
 
 	public removeCard(card: Card): void {
-		if (this._cards.length === 0) return;
+		if (this.cards.length === 0) return;
 
-		const cardIndex = this._cards.indexOf(card);
+		const cardIndex = this.cards.indexOf(card);
 
-		if (cardIndex < 0 || cardIndex >= this._cards.length) return;
+		if (cardIndex < 0 || cardIndex >= this.cards.length) return;
 
-		const cardToRemove = this._cards[cardIndex];
-		this._cards.splice(cardIndex, 1);
+		const cardToRemove = this.cards[cardIndex];
+		this.cards.splice(cardIndex, 1);
 		this.removeChild(cardToRemove);
 
 		this.emit("cardRemoved", { card: cardToRemove, container: this });
@@ -175,8 +173,8 @@ export class CardContainer extends PixiContainer {
 	}
 
 	public removeAllCards(): void {
-		while (this._cards.length > 0) {
-			this.removeCard(this._cards[0]);
+		while (this.cards.length > 0) {
+			this.removeCard(this.cards[0]);
 		}
 	}
 
@@ -193,7 +191,7 @@ export class CardContainer extends PixiContainer {
 
 	public setCardsInteractive(interactive: boolean): void {
 		this._areCardsInteractive = interactive;
-		this._cards.forEach((card) => {
+		this.cards.forEach((card) => {
 			card.eventMode = interactive ? "static" : "none";
 			card.cursor = interactive ? "pointer" : "default";
 		});
@@ -214,15 +212,32 @@ export class CardContainer extends PixiContainer {
 	}
 
 	/**
+	 * Transfer multiple cards from this container to a target container.
+	 * All final positions are pre-calculated upfront so cards land in the correct spots.
+	 * @param cards Cards to transfer.
+	 * @param targetContainer Target container.
+	 */
+	public async transferCardsTo(
+		cards: Card[],
+		targetContainer: CardContainer
+	): Promise<void> {
+		return CardContainer.cardAnimator.transferCards(
+			cards,
+			this,
+			targetContainer
+		);
+	}
+
+	/**
 	 * Transfer all cards from this container to a target container with staggered animations
 	 */
 	public async transferAllCardsTo(
 		targetContainer: CardContainer
 	): Promise<void> {
-		if (this._cards.length === 0) return;
+		if (this.cards.length === 0) return;
 
 		// Transfer each card with a small delay for staggered effect
-		const transferPromises = this._cards.map((card, index) => {
+		const transferPromises = this.cards.map((card, index) => {
 			return new Promise<void>((resolve) => {
 				setTimeout(async () => {
 					await this.transferCardTo(card, targetContainer);
@@ -239,11 +254,11 @@ export class CardContainer extends PixiContainer {
 	 * Cards will be spaced evenly, and if they exceed maxWidth, they will overlap.
 	 */
 	public updateCardPositions(): void {
-		if (this._cards.length === 0) return;
+		if (this.cards.length === 0) return;
 		if (this._isAnimating) return;
 
 		if (this._layoutType === CardContainerLayoutType.STACK) {
-			this._cards.forEach((card) => {
+			this.cards.forEach((card) => {
 				card.x = 0;
 				card.y = 0;
 			});
@@ -252,8 +267,8 @@ export class CardContainer extends PixiContainer {
 
 		this._isAnimating = true;
 
-		const cardCount = this._cards.length;
-		const cardWidth = this._cards[0].width;
+		const cardCount = this.cards.length;
+		const cardWidth = this.cards[0].width;
 
 		const totalWidthNeeded =
 			cardCount * cardWidth + (cardCount - 1) * this._cardSpacing;
@@ -283,7 +298,7 @@ export class CardContainer extends PixiContainer {
 
 		const animationPromises: Promise<void>[] = [];
 
-		this._cards.forEach((card, index) => {
+		this.cards.forEach((card, index) => {
 			let targetX: number;
 
 			if (overlap > 0) {
