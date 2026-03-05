@@ -4,6 +4,7 @@ import {
 	CardType,
 	PlayingRowContainer,
 } from "../entities/card";
+import { WeatherRowContainer } from "../entities/card/WeatherRowContainer";
 import { Player, PlayerData } from "../entities/player/Player";
 import { ScoreCalculator } from "../shared/game/ScoreCalculator";
 import { ActionType, PlayerAction } from "./GameTypes";
@@ -12,6 +13,13 @@ import { ActionType, PlayerAction } from "./GameTypes";
  * AI opponent for local games
  */
 export class BotPlayer extends Player {
+	/**
+	 * 0	Any card is good enough, picks randomly
+	 * 0.5	Only cards in the top half of gain range qualify
+	 * 1	Only the single best card qualifies
+	 */
+	public aggressiveness = 0.5;
+
 	private readonly thinkingDelay = 200;
 
 	private readonly _containerMap: Map<string, CardContainer> = new Map();
@@ -48,16 +56,14 @@ export class BotPlayer extends Player {
 
 		const passChance = 0.01;
 
-		const randomCard = cards[Math.floor(Math.random() * cards.length)];
-		const targetContainer = this._containerMap.get(randomCard.cardData.type);
-
-		this.calculateFutureScore(randomCard);
+		const optimalCard = this.findOptimalCard();
+		const targetContainer = this._containerMap.get(optimalCard.cardData.type);
 
 		await this.delay(1000);
 
 		let pass = false;
 
-		if (this.score > this._otherPlayer.score && this.score > 10) {
+		if (this.score > this._otherPlayer.score * 2 && this.score > 10) {
 			pass = true;
 		} else if (Math.random() < passChance) {
 			pass = true;
@@ -75,7 +81,7 @@ export class BotPlayer extends Player {
 		return {
 			type: ActionType.PLACE_CARD,
 			player: this,
-			card: randomCard,
+			card: optimalCard,
 			targetRow: targetContainer,
 		};
 	}
@@ -87,37 +93,56 @@ export class BotPlayer extends Player {
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
-	// Check what the score would be if a card is played.
-	private calculateFutureScore(card: Card) {
-		const fakeRow = new PlayingRowContainer({
-			containerType: card.cardData.type,
-			height: 1,
-			label: "Fake Row",
-			labelColor: 0xffffff,
-			width: 1,
+	private findOptimalCard(): Card {
+		const cards = this.hand.cards;
+
+		// Score each card by the gain it would produce
+		const scored = cards.map((card) => {
+			const { bot, enemy } = this.calculateFutureScore(card);
+			const gain = bot - enemy;
+			return { card, gain };
 		});
 
-		// See which row to replace:
+		scored.sort((a, b) => b.gain - a.gain);
 
+		const best = scored[0];
+		const worst = scored[scored.length - 1];
+		const gainRange = best.gain - worst.gain;
+		const threshold = worst.gain + gainRange * this.aggressiveness;
+
+		const goodEnough = scored.filter((s) => s.gain >= threshold);
+
+		// Pick randomly among good-enough cards to avoid being predictable
+		const pick = goodEnough[Math.floor(Math.random() * goodEnough.length)];
+
+		return pick.card;
+	}
+
+	// Check what the score would be if a card is played.
+	private calculateFutureScore(card: Card): {
+		bot: number;
+		enemy: number;
+	} {
 		const targetRow = this._containerMap.get(card.cardData.type);
+		const cloneRow = this.getCloneRow(targetRow!, card);
 
-		switch (targetRow) {
-			case this.melee:
-				fakeRow.cards = [...this.melee.cards, card];
-				break;
-			case this.ranged:
-				fakeRow.cards = [...this.ranged.cards, card];
-				break;
-			case this.siege:
-				fakeRow.cards = [...this.siege.cards, card];
-				break;
-		}
+		const targetMelee = (
+			targetRow === this.melee ? cloneRow : this.melee
+		) as PlayingRowContainer;
+
+		const targetRanged = (
+			targetRow === this.ranged ? cloneRow : this.ranged
+		) as PlayingRowContainer;
+
+		const targetSiege = (
+			targetRow === this.siege ? cloneRow : this.siege
+		) as PlayingRowContainer;
 
 		const context = {
 			player: {
-				melee: targetRow === this.melee ? fakeRow : this.melee,
-				ranged: targetRow === this.ranged ? fakeRow : this.ranged,
-				siege: targetRow === this.siege ? fakeRow : this.siege,
+				melee: targetMelee,
+				ranged: targetRanged,
+				siege: targetSiege,
 				weather: this.weather,
 				hand: this.hand,
 				deck: this.deck,
@@ -146,8 +171,38 @@ export class BotPlayer extends Player {
 			0
 		);
 
-		console.log(
-			`If bot plays ${card.cardData.name}, future score would be: ${totalBotScore} vs ${totalEnemyScore}`
-		);
+		return {
+			bot: totalBotScore,
+			enemy: totalEnemyScore,
+		};
+	}
+
+	private getCloneRow(row: CardContainer, card: Card): CardContainer {
+		let cloneRow;
+
+		if (row instanceof PlayingRowContainer) {
+			cloneRow = new PlayingRowContainer({
+				containerType: row.containerType!,
+				height: 1,
+				label: "_",
+				labelColor: 0xffffff,
+				width: 1,
+			});
+			cloneRow.cards = [...row.cards, card];
+			cloneRow.weatherEffectApplied = row.weatherEffectApplied;
+			cloneRow.strengthBoost = row.strengthBoost;
+		} else if (row instanceof WeatherRowContainer) {
+			cloneRow = new WeatherRowContainer({
+				height: 1,
+				label: "_",
+				width: 1,
+				containerType: CardType.WEATHER,
+			});
+			cloneRow.cards = [...row.cards, card];
+		} else {
+			throw new Error("Unknown row type for cloning");
+		}
+
+		return cloneRow;
 	}
 }
