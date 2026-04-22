@@ -1,7 +1,8 @@
-import { State, StateName } from "./State";
-import { GameContext } from "../GameContext";
+import { CardPreview } from "../../../entities/card/CardPreview";
 import { ActionType, BotPlayer, GamePhase } from "../../../local-server";
+import { GameContext } from "../GameContext";
 import { GameManager } from "../GameManager";
+import { State, StateName } from "./State";
 
 /**
  * Processes enemy actions during enemy state.
@@ -9,6 +10,7 @@ import { GameManager } from "../GameManager";
 export class EnemyActionState extends State {
 	private readonly _enemyPlayer: BotPlayer;
 	private readonly _gameManager: GameManager;
+	private readonly _cardPreview: CardPreview;
 
 	private _isFirstEntry = true;
 
@@ -17,6 +19,7 @@ export class EnemyActionState extends State {
 
 		this._enemyPlayer = context.enemy;
 		this._gameManager = context.gameManager;
+		this._cardPreview = context.gameScene.cardPreview;
 	}
 
 	public async execute(): Promise<StateName> {
@@ -27,6 +30,14 @@ export class EnemyActionState extends State {
 		}
 
 		const action = await this._enemyPlayer.decideAction();
+
+		if (action.card) {
+			this._cardPreview.show(action.card.cardData);
+
+			await this.delay(2);
+
+			this._cardPreview.hide();
+		}
 
 		await this._gameManager.handleAction(action);
 

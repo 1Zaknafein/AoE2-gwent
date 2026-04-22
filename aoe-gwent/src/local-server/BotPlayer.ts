@@ -20,8 +20,6 @@ export class BotPlayer extends Player {
 	 */
 	public aggressiveness = 0.5;
 
-	private readonly thinkingDelay = 200;
-
 	private readonly _containerMap: Map<string, CardContainer> = new Map();
 	private readonly _otherPlayer: Player;
 	private readonly _scoreCalculator: ScoreCalculator;
@@ -43,8 +41,6 @@ export class BotPlayer extends Player {
 	 * Take turn as bot.
 	 */
 	public async decideAction(): Promise<PlayerAction> {
-		await this.delay(this.thinkingDelay);
-
 		const cards = this.hand.cards;
 
 		if (!cards || cards.length === 0) {
