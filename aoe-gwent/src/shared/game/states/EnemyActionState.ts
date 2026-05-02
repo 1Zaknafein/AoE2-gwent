@@ -1,5 +1,6 @@
 import { CardPreview } from "../../../entities/card/CardPreview";
 import { ActionType, BotPlayer, GamePhase } from "../../../local-server";
+import { SpeedConfig } from "../../config/SpeedConfig";
 import { GameContext } from "../GameContext";
 import { GameManager } from "../GameManager";
 import { State, StateName } from "./State";
@@ -34,14 +35,14 @@ export class EnemyActionState extends State {
 		if (action.card) {
 			this._cardPreview.show(action.card.cardData);
 
-			await this.delay(2);
+			await this.delay(SpeedConfig.enemyThinkTime);
 
 			this._cardPreview.hide();
 		}
 
 		await this._gameManager.handleAction(action);
 
-		await this.delay(0.5);
+		await this.delay(SpeedConfig.enemyPostActionDelay);
 
 		if (action.type === ActionType.PASS_TURN) {
 			await this.messageDisplay.showMessage("Opponent has passed");

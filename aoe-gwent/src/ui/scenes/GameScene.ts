@@ -1,16 +1,17 @@
-import { PixiContainer } from "../../plugins/engine";
-import { Manager, SceneInterface } from "../../entities/manager";
+import { Assets, Container, FillGradient, Graphics, Sprite } from "pixi.js";
 import {
-	PlayingRowContainer,
-	HandContainer,
 	CardContainer,
 	CardType,
+	HandContainer,
+	PlayingRowContainer,
 } from "../../entities/card";
-import { Deck } from "../../entities/deck";
-import { GameSceneBuildHelper } from "./GameSceneBuildHelper";
-import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
-import { Assets, Container, FillGradient, Graphics, Sprite } from "pixi.js";
 import { CardPreview } from "../../entities/card/CardPreview";
+import { WeatherRowContainer } from "../../entities/card/WeatherRowContainer";
+import { Deck } from "../../entities/deck";
+import { Manager, SceneInterface } from "../../entities/manager";
+import { PixiContainer } from "../../plugins/engine";
+import { SpeedToggleButton } from "../components/SpeedToggleButton";
+import { GameSceneBuildHelper } from "./GameSceneBuildHelper";
 
 /**
  * Game scene containing all board elements.
@@ -42,6 +43,8 @@ export class GameScene extends PixiContainer implements SceneInterface {
 	public readonly background: Graphics;
 
 	public readonly cardPreview: CardPreview;
+
+	public readonly speedToggleButton: SpeedToggleButton;
 
 	public readonly boardWidth = 2400;
 	public readonly boardHeight = 1350;
@@ -158,6 +161,9 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.boardHeight / 2 - 150
 		);
 
+		this.speedToggleButton = new SpeedToggleButton();
+		this.speedToggleButton.position.set(30, 30);
+
 		this.gameBoard.addChild(
 			this.background,
 			this.backgroundImage,
@@ -179,7 +185,8 @@ export class GameScene extends PixiContainer implements SceneInterface {
 			this.playerHand,
 			this.playerDeck,
 			this.opponentDeck,
-			this.cardPreview
+			this.cardPreview,
+			this.speedToggleButton
 		);
 
 		this.resize(Manager.width, Manager.height);
