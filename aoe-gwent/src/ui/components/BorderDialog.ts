@@ -1,4 +1,4 @@
-import { Container, NineSliceSprite, TilingSprite, Texture } from "pixi.js";
+import { Container, NineSliceSprite, Texture, TilingSprite } from "pixi.js";
 
 export type DialogFillStyle = "leather" | "old_paper" | "wood" | "dirt";
 
@@ -21,7 +21,7 @@ export class BorderDialog extends Container {
 		});
 
 		const inner = new TilingSprite({
-			texture: this.getFillTexture(fillStyle),
+			texture: Texture.from(fillStyle),
 			width: border.width - 20,
 			height: border.height - 20,
 		});
@@ -29,18 +29,5 @@ export class BorderDialog extends Container {
 		inner.y = 10;
 
 		this.addChild(inner, border);
-	}
-
-	private getFillTexture(fillStyle: DialogFillStyle): Texture {
-		switch (fillStyle) {
-			case "leather":
-				return Texture.from("leather_fill");
-			case "old_paper":
-				return Texture.from("old_paper");
-			case "wood":
-				return Texture.from("wood");
-			case "dirt":
-				return Texture.from("dirt");
-		}
 	}
 }
